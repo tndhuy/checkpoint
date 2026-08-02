@@ -1,0 +1,13 @@
+{
+  "current_state": "Source review is complete for the local Checkpoint SOP, DORA 2025 AI-assisted software development report, Anthropic Economic Index September 2025, and OpenAI Harness Engineering. The verified finding is that context curation and feedback loops affect agent effectiveness. The claim that a canonical checkpoint reduces resume time below five minutes remains a hypothesis. External claims have URLs in the working research note; the DORA wording is a paraphrase and must not be quoted directly. No scoring rubric or three-trial comparison has been completed yet.",
+  "exact_next_action": "Define the scoring rubric, including the metric or metric combination used to compare checkpoint and unstructured-baseline resumes, before collecting any of the three trials.",
+  "scope_boundary": "Compare checkpoint versus unstructured baseline only across developer, research, and operations work. Do not generalize from three fixtures to overall productivity or personality, do not present the paraphrased DORA statement as a direct quote, and do not run an evaluation that exposes the fresh agent to prior-session context.",
+  "done_gate": "The rubric is written, every claim is explicitly labelled verified or hypothesis, and three trials have comparable observations gathered under a cold-resume protocol.",
+  "reconstructive_questions": [
+    "Which metric is least gameable: resume time, reconstructive questions, repeated tool calls, or a defined combination?",
+    "What scoring scale, thresholds, and observation format make the three trials directly comparable?",
+    "Which exact developer, research, and operations fixtures will be used for the three trials?",
+    "How will each trial guarantee that the evaluating agent sees only the permitted resume artifact and receives no same-session context?",
+    "Where is the working research note containing the source URLs and verified-versus-hypothesis labels?"
+  ]
+}

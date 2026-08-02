@@ -1,0 +1,7 @@
+{
+  "current_state": "macOS 32 GB RAM; qwen3.6 was removed after memory pressure; memory pressure is green; swap remains 5.1 GB; current Ollama process state and model inventory are unverified; Steam CrossOver bottle and UTM Windows VM must remain untouched.",
+  "exact_next_action": "Run `ollama ps`, then run `ps -ax` filtered specifically for Ollama. If no model process exists, run `ollama list` and record the current inventory. If a model is unexpectedly loaded, first resolve its exact model name, then run `ollama stop <exact-model-name>`.",
+  "scope_boundary": "Only inspect Ollama model/process state and inventory, and stop an unexpected loaded model only after resolving its exact name. Do not load or download models, force swap purge, perform destructive cleanup, delete or alter the Steam CrossOver bottle or UTM Windows VM, or use broad kill commands.",
+  "done_gate": "No Ollama model is loaded; memory pressure remains green; Steam and UTM data are untouched; the current Ollama model inventory is recorded.",
+  "reconstructive_questions": []
+}

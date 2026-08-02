@@ -1,0 +1,17 @@
+{
+  "profile": "developer",
+  "required_terms": [
+    "fix/idempotent-refund",
+    "tests/refunds/test_idempotency.py",
+    "src/refunds/service.py",
+    "expected provider calls 1",
+    "20260118_refund_keys.sql",
+    "do not change public response shape"
+  ],
+  "resume_required_terms": [
+    "fix/idempotent-refund",
+    "tests/refunds/test_idempotency.py",
+    "20260118_refund_keys.sql",
+    "do not change public response shape"
+  ]
+}

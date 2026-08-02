@@ -1,0 +1,11 @@
+{
+  "current_state": "Research question and evidence boundaries are defined. One claim is verified, while the central sub-five-minute resume hypothesis remains unverified. No scoring rubric or three-trial checkpoint-versus-unstructured comparison exists yet.",
+  "exact_next_action": "Define and write a scoring rubric that selects or combines resume time, reconstructive questions, and repeated tool calls while minimizing gameability; fix this rubric before collecting any trials.",
+  "scope_boundary": "Compare checkpoint and unstructured baselines only across the three developer, research, and operations fixtures; evaluate context-reconstruction cost only; do not generalize productivity or personality conclusions; treat the sub-five-minute resume target as a hypothesis; preserve the DORA statement as a paraphrase, not a direct quotation.",
+  "done_gate": "The rubric is written; every claim is labelled verified or hypothesis; three trials contain comparable observations; and cold-resume proof comes from a fresh agent that received only this checkpoint.",
+  "reconstructive_questions": [
+    "What precise scoring formula, thresholds, and weighting will combine resume time, reconstructive questions, and repeated tool calls without making the metric easy to game?",
+    "What standardized procedure and observation format will make the three checkpoint-versus-unstructured trials comparable?",
+    "Where should the rubric and trial observations be recorded, given that the working directory and working research-note path are not provided?"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "current_state": "Local Ollama is under diagnosis after qwen3.6 was removed because of memory pressure. Memory pressure is green; swap remains 5.1 GB and should decline naturally. Ollama may stay installed, but no model should be loaded during this task. ollama ps, Activity Monitor inspection, and disk inventory were already run.",
+  "exact_next_action": "Run ollama ps, then inspect ps -ax filtered specifically for Ollama. If no model process exists, run ollama list to record the installed model inventory without starting any model. If a model is unexpectedly loaded, resolve its exact name and run ollama stop <exact-model-name>, then repeat the checks.",
+  "scope_boundary": "Diagnosis and exact-model stopping only. Do not start or download a model, force-purge swap, perform destructive cleanup, use broad kill commands, delete the Steam CrossOver bottle, or delete the UTM Windows VM. The Ollama service may remain installed.",
+  "done_gate": "Confirmed no Ollama model is loaded, memory pressure remains green, Steam and UTM data remain untouched, and the current Ollama model inventory is recorded.",
+  "reconstructive_questions": [
+    "What is the current output of ollama ps?",
+    "Does ps -ax show any Ollama model process after filtering specifically for Ollama?",
+    "If a model is loaded, what exact model name is reported?",
+    "What models are currently recorded by ollama list?",
+    "Is memory pressure still green, and are the Steam CrossOver bottle and UTM Windows VM untouched?"
+  ]
+}

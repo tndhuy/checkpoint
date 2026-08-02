@@ -1,0 +1,10 @@
+{
+  "current_state": "The reproduction test exists and currently fails because concurrent duplicate refund requests both reach the provider: the idempotency record is written only after the provider request. Last verified focused test result expected 1 provider call but observed 2. The chosen approach is to reserve the idempotency key inside the existing database transaction and rely on uniqueness of (merchant_id, idempotency_key), but the existing migration has not yet been confirmed to contain that constraint.",
+  "exact_next_action": "In /workspace/payment-service on branch fix/idempotent-refund, inspect 20260118_refund_keys.sql first and confirm whether it already defines a unique constraint or index on (merchant_id, idempotency_key); do not create a migration before this check.",
+  "scope_boundary": "Only change src/refunds/, tests/refunds/test_idempotency.py, and a migration if inspection proves the required uniqueness constraint is absent. Do not change the public response shape, provider client, unrelated payment flows, or create a duplicate migration.",
+  "done_gate": "pytest tests/refunds/test_idempotency.py -q passes, the existing refund suite passes, and the final diff contains no public response-contract changes.",
+  "reconstructive_questions": [
+    "Does 20260118_refund_keys.sql already enforce uniqueness on (merchant_id, idempotency_key)?",
+    "What exact implementation file is currently changed beyond tests/refunds/test_idempotency.py, given that the checkpoint does not state it?"
+  ]
+}

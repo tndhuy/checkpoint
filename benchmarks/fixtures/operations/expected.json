@@ -1,0 +1,19 @@
+{
+  "profile": "operations",
+  "required_terms": [
+    "32 GB RAM",
+    "swap remains 5.1 GB",
+    "ollama ps",
+    "Steam CrossOver bottle",
+    "UTM Windows VM",
+    "ollama stop <exact-model-name>",
+    "Do not use broad kill commands"
+  ],
+  "resume_required_terms": [
+    "ollama ps",
+    "Steam CrossOver bottle",
+    "UTM Windows VM",
+    "ollama stop <exact-model-name>",
+    "broad kill commands"
+  ]
+}

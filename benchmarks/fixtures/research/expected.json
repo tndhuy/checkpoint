@@ -1,0 +1,17 @@
+{
+  "profile": "research",
+  "required_terms": [
+    "structured checkpointing reduce context reconstruction cost",
+    "DORA 2025",
+    "paraphrased",
+    "resume time below five minutes",
+    "same-session evaluation leaks context",
+    "define the scoring rubric"
+  ],
+  "resume_required_terms": [
+    "DORA",
+    "paraphrased",
+    "five minute",
+    "scoring rubric"
+  ]
+}
