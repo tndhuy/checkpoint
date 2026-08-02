@@ -1,0 +1,8 @@
+{
+  "name": "checkpoint-skill",
+  "version": "0.1.0",
+  "description": "Capture evidence-backed task state for reliable resume, handoff, context switching, and compaction.",
+  "author": {
+    "name": "Tran Nguyen Dang Huy"
+  }
+}

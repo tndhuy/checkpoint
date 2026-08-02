@@ -1,51 +1,64 @@
 # Checkpoint Skill
 
-Agent-neutral skill for capturing concise, evidence-backed and resumable task state before context switches, pauses, handoffs or compaction.
+Agent-neutral workflow for capturing concise, evidence-backed task state before context switches, pauses, handoffs, compaction, or agent changes.
 
-## Repository layout
+The repository ships both an open Agent Skills-compatible skill and installable Codex/Claude plugin packages.
 
-- `skills/checkpoint/` — installable runtime skill.
-- `scripts/` — deterministic contract and cold-resume evaluators.
-- `tests/` — regression tests for structure and evaluation behavior.
-- `benchmarks/fixtures/` — developer, research and operations scenarios.
-- `benchmarks/results/` — dated forward-test evidence.
-- `docs/BENCHMARK.md` — benchmark protocol and acceptance gates.
+## Layout
+
+- `plugins/checkpoint-skill/` — distributable plugin root.
+- `plugins/checkpoint-skill/skills/checkpoint/` — portable runtime skill.
+- `.agents/plugins/marketplace.json` — Codex marketplace.
+- `.claude-plugin/marketplace.json` — Claude Code marketplace.
+- `scripts/` and `tests/` — deterministic quality gates.
+- `benchmarks/` — fixtures and dated behavioral evidence.
 
 ## Verify
 
 ```bash
 python3 scripts/verify.py
+claude plugin validate --strict .
+claude plugin validate --strict plugins/checkpoint-skill
 ```
 
-Run a dated checkpoint contract:
+Codex's plugin manifest is validated with the built-in `plugin-creator` validator during release preparation.
+
+## Install from a local checkout
+
+### Codex
 
 ```bash
-python3 scripts/evaluate_checkpoint.py \
-  benchmarks/results/2026-08-02/developer-checkpoint.md \
-  benchmarks/fixtures/developer/expected.json
+codex plugin marketplace add /absolute/path/to/checkpoint-skill
+codex plugin add checkpoint-skill@checkpoint-skill-local
 ```
 
-Run its cold-resume comparison:
+Start a new task after installation.
+
+### Claude Code
 
 ```bash
-python3 scripts/evaluate_resume.py \
-  benchmarks/results/2026-08-02/developer-resume.json \
-  benchmarks/fixtures/developer/expected.json \
-  --baseline benchmarks/results/2026-08-02/developer-baseline.json
+claude plugin marketplace add /absolute/path/to/checkpoint-skill
+claude plugin install checkpoint-skill@checkpoint-skill
 ```
 
-## Install locally
+Restart Claude Code after installation.
 
-The maintained checkout is linked into the agent discovery directory:
+### Direct skill discovery
+
+Hosts supporting the open Agent Skills layout can point their discovery directory at:
 
 ```text
-~/.agents/skills/checkpoint -> <repo>/skills/checkpoint
+plugins/checkpoint-skill/skills/checkpoint
 ```
 
-The installer is intentionally not automatic. Replacing an existing discovery path must preserve its contents and requires explicit approval.
+## Evidence
 
-## Current evidence
+The 2026-08-02 isolated-agent benchmark passed developer, research, and operations fixtures. Checkpoint resumes asked 5 reconstructive questions versus 14 for raw-state baselines. See `benchmarks/results/2026-08-02/report.md`.
 
-The 2026-08-02 isolated-agent benchmark passed all developer, research and operations fixtures. Checkpoints required 5 reconstructive questions in total versus 14 for raw-state baselines. See `benchmarks/results/2026-08-02/report.md`.
+Host-native marketplace installation is verified for Codex and Claude at version `0.1.0`. An isolated fresh Codex run loaded the tracked skill and scored 19/19. Automatic Codex discovery on the author's full profile is currently obscured by that profile exceeding the host skill-context budget; Claude runtime execution is blocked by an expired OAuth session. See `benchmarks/results/2026-08-02/host-install-smoke.md`.
 
-This is same-run cold-context evidence, not yet a multi-day real-project handoff. The next proof should record resume time, repeated tool calls, questions and scope mistakes on a real task.
+This is same-run isolated-context evidence. Clean-profile discovery and a multi-day real-project handoff remain the next validation tiers.
+
+## License
+
+MIT

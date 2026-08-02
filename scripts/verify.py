@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / "skills/checkpoint"
+SKILL = ROOT / "plugins/checkpoint-skill/skills/checkpoint"
 
 
 def validate_skill() -> bool:
@@ -32,14 +32,17 @@ def validate_skill() -> bool:
     return True
 
 
+def run(command: tuple[str, ...]) -> bool:
+    return subprocess.run(command, cwd=ROOT, check=False).returncode == 0
+
+
 def main() -> int:
-    structure_ok = validate_skill()
-    tests = subprocess.run(
-        (sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-v"),
-        cwd=ROOT,
-        check=False,
+    checks = (
+        validate_skill(),
+        run((sys.executable, "-B", "scripts/validate_distribution.py")),
+        run((sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-v")),
     )
-    return 0 if structure_ok and tests.returncode == 0 else 1
+    return 0 if all(checks) else 1
 
 
 if __name__ == "__main__":

@@ -1,0 +1,20 @@
+{
+  "name": "checkpoint-skill-local",
+  "interface": {
+    "displayName": "Checkpoint Skill Local"
+  },
+  "plugins": [
+    {
+      "name": "checkpoint-skill",
+      "source": {
+        "source": "local",
+        "path": "./plugins/checkpoint-skill"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

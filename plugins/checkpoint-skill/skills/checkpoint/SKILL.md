@@ -34,7 +34,11 @@ Capture objective, scope, current state, last verified evidence, relevant files/
 
 ## Write
 
-Use `assets/checkpoint-template.md`. Keep it scannable in under one minute. Required sections:
+Use `assets/checkpoint-template.md`. Keep it scannable in under one minute.
+
+When the user explicitly invokes `$checkpoint` or `/checkpoint`, always render the full canonical template, including for chat-only output. Do not collapse it into a summary or rename, merge or omit required headings. Profile-specific fields may say `Unknown` when evidence is unavailable; keep the field so absence is explicit. Preserve exact paths, commands, branch names and failure messages verbatim when supplied.
+
+Required sections:
 
 - Outcome
 - Scope and boundaries

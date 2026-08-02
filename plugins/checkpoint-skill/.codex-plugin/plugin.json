@@ -1,0 +1,33 @@
+{
+  "name": "checkpoint-skill",
+  "version": "0.1.0",
+  "description": "Capture evidence-backed task state for reliable resume, handoff, context switching, and compaction.",
+  "author": {
+    "name": "Tran Nguyen Dang Huy"
+  },
+  "license": "MIT",
+  "keywords": [
+    "checkpoint",
+    "handoff",
+    "resume",
+    "context",
+    "agent-workflow"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Checkpoint",
+    "shortDescription": "Save verified task state for a clean resume",
+    "longDescription": "Capture current state, evidence, boundaries, next action, risks, and completion gates before pausing, switching projects or agents, handing off work, or compacting context.",
+    "developerName": "Tran Nguyen Dang Huy",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Checkpoint this task before I switch context.",
+      "Prepare a verified handoff for another agent.",
+      "Save this open loop so I can resume later."
+    ]
+  }
+}
