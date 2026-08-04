@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.6] - 2026-08-04
+
+### Changed
+- Generated checkpoint documents now follow the user's current language unless another language is explicitly requested.
+- Technical identifiers, paths, commands, branch names, and error messages remain verbatim across localized checkpoint output.
+
 ## [0.1.5] - 2026-08-04
 
 ### Added

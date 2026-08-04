@@ -48,6 +48,10 @@ Codex exposes these namespaced skills:
 - `$checkpoint:recall` — load and resume a checkpoint.
 - `$checkpoint:checkpoint` — invoke the portable canonical workflow directly.
 
+Generated checkpoint documents follow the language used in the user's current
+request unless another language is explicitly requested. Technical literals
+such as paths, commands, branch names, and error messages remain unchanged.
+
 ### Claude Code
 
 ```bash

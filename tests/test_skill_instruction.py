@@ -23,6 +23,18 @@ class SkillInstructionTests(unittest.TestCase):
         self.assertIn("write `Unknown` for any missing fact", content)
         self.assertIn("one line beginning `- Do not:`", content)
 
+    def test_generated_checkpoints_follow_the_users_language(self):
+        for name in ("checkpoint", "save"):
+            with self.subTest(name=name):
+                content = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
+                normalized = " ".join(content.split())
+                self.assertIn(
+                    "language used by the user in the current request",
+                    normalized,
+                )
+                self.assertIn("explicitly requests another language", normalized)
+                self.assertIn("error messages verbatim", normalized)
+
     def test_all_contract_headings_are_named_in_skill(self):
         content = SKILL.read_text(encoding="utf-8")
         for heading in REQUIRED_HEADINGS:

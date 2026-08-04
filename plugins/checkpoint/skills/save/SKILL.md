@@ -21,6 +21,11 @@ For a developer checkpoint, always include `Working directory`, `Branch`, `Chang
 
 ## Required output
 
+Write the generated checkpoint document in the language used by the user in
+the current request, unless the user explicitly requests another language.
+Keep technical identifiers, paths, commands, branch names, and error messages
+verbatim.
+
 Render the full canonical checkpoint with every heading below, including for chat-only output. Do not rename, merge, omit, or collapse these sections:
 
 - Outcome

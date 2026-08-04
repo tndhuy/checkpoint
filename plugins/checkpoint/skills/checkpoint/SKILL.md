@@ -36,6 +36,11 @@ Capture objective, scope, current state, last verified evidence, relevant files/
 
 Use `assets/checkpoint-template.md`. Keep it scannable in under one minute.
 
+Write generated checkpoint documents in the language used by the user in the
+current request, unless the user explicitly requests another language. Keep
+technical identifiers, paths, commands, branch names, and error messages
+verbatim.
+
 When the user explicitly invokes the skill, including `$checkpoint`, `/checkpoint` or a host-namespaced form such as `$checkpoint:checkpoint` or `$checkpoint:save`, always render the full canonical template, including for chat-only output. Do not collapse it into a summary or rename, merge or omit required headings. Profile-specific fields may say `Unknown` when evidence is unavailable; keep the field so absence is explicit. Preserve exact paths, commands, branch names, failure messages and prohibition wording verbatim when supplied.
 
 For developer checkpoints, always include `Working directory`, `Branch`, `Changed files`, test evidence and `Resume command`; write `Unknown` for any missing fact. Keep each prohibition on one line beginning `- Do not:` so boundaries remain searchable and unambiguous.
