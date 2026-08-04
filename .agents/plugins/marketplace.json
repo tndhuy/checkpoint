@@ -5,10 +5,10 @@
   },
   "plugins": [
     {
-      "name": "checkpoint-skill",
+      "name": "checkpoint",
       "source": {
         "source": "local",
-        "path": "./plugins/checkpoint-skill"
+        "path": "./plugins/checkpoint"
       },
       "policy": {
         "installation": "AVAILABLE",

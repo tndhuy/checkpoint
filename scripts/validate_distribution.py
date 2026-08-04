@@ -9,9 +9,11 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_NAME = "checkpoint-skill"
-PLUGIN = ROOT / "plugins" / PLUGIN_NAME
+PLUGIN_DIR = "checkpoint"
+PLUGIN_NAME = "checkpoint"
+PLUGIN = ROOT / "plugins" / PLUGIN_DIR
 SKILL = PLUGIN / "skills" / "checkpoint"
+CODEX_SKILLS = ("checkpoint", "save", "list", "recall")
 SEMVER = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$")
 PRIVATE_MARKERS = ("/Users/", "\\Users\\", "trannguyendanghuy", "Workspace/personal")
 
@@ -35,7 +37,7 @@ def find_entry(marketplace: dict) -> dict | None:
 
 
 def validate(root: Path = ROOT) -> list[str]:
-    plugin = root / "plugins" / PLUGIN_NAME
+    plugin = root / "plugins" / PLUGIN_DIR
     skill = plugin / "skills" / "checkpoint"
     errors: list[str] = []
     required = (
@@ -48,6 +50,7 @@ def validate(root: Path = ROOT) -> list[str]:
         skill / "agents/openai.yaml",
         skill / "assets/checkpoint-template.md",
         skill / "references/profiles.md",
+        *(plugin / "skills" / name / "SKILL.md" for name in CODEX_SKILLS),
     )
     for path in required:
         if not path.is_file():
@@ -73,6 +76,8 @@ def validate(root: Path = ROOT) -> list[str]:
     if len(set(versions.values())) != 1:
         errors.append(f"version mismatch: {versions}")
 
+    if plugin.name != PLUGIN_NAME:
+        errors.append("plugin directory must match the plugin namespace")
     if codex.get("name") != PLUGIN_NAME or claude.get("name") != PLUGIN_NAME:
         errors.append("plugin manifest names must match the plugin directory")
     if codex.get("skills") != "./skills/":
@@ -81,17 +86,23 @@ def validate(root: Path = ROOT) -> list[str]:
         errors.append("Codex manifest requires author.name")
 
     codex_entry = find_entry(codex_market)
-    expected_source = {"source": "local", "path": "./plugins/checkpoint-skill"}
+    expected_source = {"source": "local", "path": "./plugins/checkpoint"}
     if codex_entry is None:
-        errors.append("Codex marketplace is missing checkpoint-skill")
+        errors.append("Codex marketplace is missing checkpoint")
     elif codex_entry.get("source") != expected_source:
-        errors.append("Codex marketplace source must target ./plugins/checkpoint-skill")
+        errors.append("Codex marketplace source must target ./plugins/checkpoint")
 
     claude_entry = find_entry(claude_market)
     if claude_entry is None:
-        errors.append("Claude marketplace is missing checkpoint-skill")
-    elif claude_entry.get("source") != "./plugins/checkpoint-skill":
-        errors.append("Claude marketplace source must target ./plugins/checkpoint-skill")
+        errors.append("Claude marketplace is missing checkpoint")
+    elif claude_entry.get("source") != "./plugins/checkpoint":
+        errors.append("Claude marketplace source must target ./plugins/checkpoint")
+
+    for name in CODEX_SKILLS:
+        skill_file = plugin / "skills" / name / "SKILL.md"
+        text = skill_file.read_text(encoding="utf-8")
+        if not re.search(rf"^name:\s*{re.escape(name)}\s*$", text, re.MULTILINE):
+            errors.append(f"Codex skill {name!r} has a mismatched frontmatter name")
 
     for path in plugin.rglob("*"):
         if not path.is_file():

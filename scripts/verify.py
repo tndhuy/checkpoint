@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / "plugins/checkpoint-skill/skills/checkpoint"
+SKILL = ROOT / "plugins/checkpoint/skills/checkpoint"
 
 
 def validate_skill() -> bool:

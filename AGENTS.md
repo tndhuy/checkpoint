@@ -2,8 +2,8 @@
 
 ## Source of truth
 
-- Runtime plugin: `plugins/checkpoint-skill/`
-- Runtime skill: `plugins/checkpoint-skill/skills/checkpoint/`
+- Runtime plugin: `plugins/checkpoint/`
+- Runtime skill: `plugins/checkpoint/skills/checkpoint/`
 - Contract and distribution checks: `scripts/`
 - Behavioral fixtures and evidence: `benchmarks/`
 

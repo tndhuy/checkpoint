@@ -1,4 +1,4 @@
 interface:
   display_name: "Checkpoint"
   short_description: "Capture resumable state before switching context"
-  default_prompt: "Use $checkpoint to save the current task state for a clean resume or handoff."
+  default_prompt: "Use $checkpoint:save to save the current task state for a clean resume or handoff."

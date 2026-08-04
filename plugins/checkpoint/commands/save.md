@@ -1,0 +1,11 @@
+---
+description: Capture evidence-backed task state for reliable resume, handoff, or context switching
+argument-hint: "[optional note, e.g. why you're checkpointing or a destination hint]"
+allowed-tools: Read, Write, Edit
+---
+
+The user explicitly invoked the checkpoint save command. Follow the host-neutral save skill below in full, then write the checkpoint now.
+
+@./skills/save/SKILL.md
+
+Additional context from the user for this invocation, if any: $ARGUMENTS

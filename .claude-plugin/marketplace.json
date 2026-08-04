@@ -1,18 +1,21 @@
 {
   "name": "checkpoint-skill",
   "owner": {
-    "name": "Tran Nguyen Dang Huy"
+    "name": "tndhuy"
   },
   "metadata": {
     "description": "Checkpoint workflow for durable agent handoffs",
-    "version": "0.1.0"
+    "version": "0.1.4"
   },
   "plugins": [
     {
-      "name": "checkpoint-skill",
+      "name": "checkpoint",
       "description": "Capture evidence-backed task state for reliable resume and handoff.",
-      "source": "./plugins/checkpoint-skill",
+      "source": "./plugins/checkpoint",
       "strict": true
     }
-  ]
+  ],
+  "renames": {
+    "checkpoint-skill": "checkpoint"
+  }
 }

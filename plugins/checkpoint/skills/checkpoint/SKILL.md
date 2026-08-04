@@ -26,7 +26,7 @@ Keep transient state out of the durable knowledge Wiki. Promote only verified re
 
 ## Select profile
 
-Use `generic` unless evidence supports a more specific profile. Read `references/profiles.md` when applying `developer`, `research` or `operations`. Profiles add fields; they never remove the canonical core.
+Use `generic` unless evidence supports a more specific profile. Repository, branch, source path, test or migration evidence selects `developer`; services, processes or machine metrics select `operations`; research questions, claims or sources select `research`. Read `references/profiles.md` when the profile adds details not covered below. Profiles add fields; they never remove the canonical core.
 
 ## Gather evidence
 
@@ -36,7 +36,9 @@ Capture objective, scope, current state, last verified evidence, relevant files/
 
 Use `assets/checkpoint-template.md`. Keep it scannable in under one minute.
 
-When the user explicitly invokes `$checkpoint` or `/checkpoint`, always render the full canonical template, including for chat-only output. Do not collapse it into a summary or rename, merge or omit required headings. Profile-specific fields may say `Unknown` when evidence is unavailable; keep the field so absence is explicit. Preserve exact paths, commands, branch names and failure messages verbatim when supplied.
+When the user explicitly invokes the skill, including `$checkpoint`, `/checkpoint` or a host-namespaced form such as `$checkpoint:checkpoint` or `$checkpoint:save`, always render the full canonical template, including for chat-only output. Do not collapse it into a summary or rename, merge or omit required headings. Profile-specific fields may say `Unknown` when evidence is unavailable; keep the field so absence is explicit. Preserve exact paths, commands, branch names, failure messages and prohibition wording verbatim when supplied.
+
+For developer checkpoints, always include `Working directory`, `Branch`, `Changed files`, test evidence and `Resume command`; write `Unknown` for any missing fact. Keep each prohibition on one line beginning `- Do not:` so boundaries remain searchable and unambiguous.
 
 Required sections:
 
