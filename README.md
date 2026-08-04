@@ -15,7 +15,14 @@ The repository ships both an open Agent Skills-compatible skill and installable 
 
 ## Verify
 
+Create an isolated development environment first. `PyYAML` is required only by
+the official plugin validator; the checkpoint runtime itself has no Python
+package dependency.
+
 ```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install -e '.[dev]'
 python3 scripts/verify.py
 claude plugin validate --strict .
 claude plugin validate --strict plugins/checkpoint
@@ -64,7 +71,7 @@ The 2026-08-02 isolated-agent benchmark passed developer, research, and operatio
 
 Host-native marketplace installation is verified for Codex and Claude. Version `0.1.1` adds a real Codex app-server smoke test: it attaches `SKILL.md` as a `type: skill` input item, matching the desktop app protocol, and scores 19/19 against the developer contract. See `benchmarks/results/2026-08-02/app-server-skill-smoke-0.1.1.md`.
 
-Version `0.1.4` adds Codex-native `$checkpoint:save`, `$checkpoint:list`, and `$checkpoint:recall` skills while retaining the Claude slash commands. Static validation and local installation pass. The current local app-server ignored structured skill items during the 0.1.4 forward probe, so behavioral verification must be repeated in a fresh Codex task.
+Version `0.1.4` adds Codex-native `$checkpoint:save`, `$checkpoint:list`, and `$checkpoint:recall` skills while retaining the Claude slash commands. Version `0.1.5` declares the reproducible development dependency used by the official plugin validator. Static validation and local installation pass. The current local app-server ignored structured skill items during the 0.1.4 forward probe, so behavioral verification must be repeated in a fresh Codex task.
 
 The earlier plain-text CLI probe in `host-install-smoke.md` did not attach a skill input item and is retained only as historical evidence. It must not be treated as an automatic-discovery result. Claude runtime execution remains blocked until the local OAuth session is restored.
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.5] - 2026-08-04
+
+### Added
+- Reproducible developer setup with `PyYAML` declared as an optional development dependency.
+- Setup guidance explaining that `PyYAML` supports official manifest validation and is not required at plugin runtime.
+
 ## [0.1.4] - 2026-08-04
 
 ### Added
