@@ -11,6 +11,10 @@ Capture operational state, not a conversation transcript. The user explicitly in
 
 Prefer an existing project checkpoint or project note, today's Daily note for cross-project state, a dedicated handoff note, then chat-only output when storage is unavailable. Update an active checkpoint instead of creating a duplicate. Keep transient state out of durable knowledge stores.
 
+## Scope, role, and trigger flags
+
+Accept `--scope project|global` and `--role <text>` on this command. Resolve both per `references/scope-and-role.md` in the `checkpoint` skill: an explicit flag overrides and re-persists the value for this project; otherwise reuse a previously recorded value silently; otherwise ask once. **This resolution never blocks or delays writing the checkpoint.** On a first-run project with nothing recorded, still render and write the full checkpoint in this same response using the default `scope: project` and `role: Unknown` — the "write the checkpoint now" instruction above always wins — then ask the one scope/role question alongside it, and apply the answer starting now. Accept `--trigger manual|post-commit|post-push|stop|pre-compact` (default `manual`) to record why this save is happening, without affecting scope or role.
+
 ## Profile and evidence
 
 Use `developer` when repository, branch, source, test, build, migration, or runtime evidence exists; `operations` for services and machine state; `research` for claims and sources; otherwise `generic`.

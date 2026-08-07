@@ -1,6 +1,6 @@
 ---
 description: List saved checkpoints so the user can choose one to recall
-argument-hint: "[optional project, title, or path filter]"
+argument-hint: "[--scope project|global|all] [optional project, title, or path filter]"
 allowed-tools: Read, Grep, Glob
 ---
 

@@ -17,6 +17,9 @@ REQUIRED_HEADINGS = (
     "Done when",
 )
 
+TOTAL_WORD_CEILING = 400
+SECTION_WORD_CEILING = 80
+
 PROFILE_CONCEPTS = {
     "generic": (),
     "developer": (
@@ -50,6 +53,7 @@ class ValidationResult:
     missing_headings: tuple[str, ...]
     missing_profile_terms: tuple[str, ...]
     missing_expected_terms: tuple[str, ...]
+    verbosity_warnings: tuple[str, ...] = ()
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), indent=2)
@@ -57,6 +61,40 @@ class ValidationResult:
 
 def headings(markdown: str) -> set[str]:
     return {match.strip() for match in re.findall(r"^##\s+(.+)$", markdown, re.MULTILINE)}
+
+
+def word_count(text: str) -> int:
+    return len(text.split())
+
+
+def section_bodies(markdown: str) -> dict[str, str]:
+    """Map each `## Heading` to the text before the next `##` heading."""
+    parts = re.split(r"^##\s+(.+)$", markdown, flags=re.MULTILINE)
+    bodies: dict[str, str] = {}
+    for index in range(1, len(parts), 2):
+        heading = parts[index].strip()
+        body = parts[index + 1] if index + 1 < len(parts) else ""
+        bodies[heading] = body
+    return bodies
+
+
+def verbosity_check(
+    markdown: str,
+    total_ceiling: int = TOTAL_WORD_CEILING,
+    section_ceiling: int = SECTION_WORD_CEILING,
+) -> tuple[str, ...]:
+    """Soft, non-blocking word-count warnings. Never affects `passed`."""
+    warnings: list[str] = []
+    total = word_count(markdown)
+    if total > total_ceiling:
+        warnings.append(f"total body is {total} words, over the {total_ceiling}-word soft ceiling")
+    for heading, body in section_bodies(markdown).items():
+        count = word_count(body)
+        if count > section_ceiling:
+            warnings.append(
+                f"'{heading}' section is {count} words, over the {section_ceiling}-word soft ceiling"
+            )
+    return tuple(warnings)
 
 
 def normalize(value: str) -> str:
@@ -95,6 +133,7 @@ def validate(markdown: str, profile: str = "generic", expected_terms: tuple[str,
         missing_headings,
         missing_profile,
         missing_expected,
+        verbosity_check(markdown),
     )
 
 

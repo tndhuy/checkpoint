@@ -1,0 +1,10 @@
+{
+  "profile": "developer",
+  "required_terms": [
+    "feat/webhook-retry-backoff",
+    "src/webhooks/dispatcher.py",
+    "retry_policy.next_delay",
+    "RETRY_INTERVAL_SECONDS",
+    "do not change the public webhook registration api"
+  ]
+}

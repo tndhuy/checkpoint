@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from checkpoint_contract import REQUIRED_HEADINGS, validate
+from checkpoint_contract import REQUIRED_HEADINGS, SECTION_WORD_CEILING, validate
 
 
 def checkpoint(extra: str = "") -> str:
@@ -52,6 +52,16 @@ class ContractTests(unittest.TestCase):
     def test_unknown_profile_rejected(self):
         with self.assertRaises(ValueError):
             validate(checkpoint(), "finance")
+
+    def test_short_checkpoint_has_no_verbosity_warnings(self):
+        self.assertEqual(validate(checkpoint()).verbosity_warnings, ())
+
+    def test_long_section_produces_soft_warning_without_failing(self):
+        rambling = " ".join(["word"] * (SECTION_WORD_CEILING + 1))
+        body = checkpoint().replace("## Outcome\ncontent", f"## Outcome\n{rambling}")
+        result = validate(body)
+        self.assertTrue(result.passed)
+        self.assertTrue(any("Outcome" in warning for warning in result.verbosity_warnings))
 
 
 if __name__ == "__main__":

@@ -24,6 +24,10 @@ Prefer:
 
 Keep transient state out of the durable knowledge Wiki. Promote only verified reusable learning.
 
+## Choose scope and role
+
+Resolve `scope` (`project` default, or `global`) and `role` (free text) once per project, then reuse silently — never re-ask or re-infer after they are recorded. An explicit `--scope` or `--role` flag on the invocation overrides and re-persists the value for this project. On first run with nothing recorded, resolving these never blocks or delays writing the checkpoint itself: write it now with the defaults, and ask the one scope/role question alongside it, not instead of it. Read `references/scope-and-role.md` for the full resolution order, the `.checkpoint/config.md` format, `.gitignore` handling, and the `--trigger` provenance flag.
+
 ## Select profile
 
 Use `generic` unless evidence supports a more specific profile. Repository, branch, source path, test or migration evidence selects `developer`; services, processes or machine metrics select `operations`; research questions, claims or sources select `research`. Read `references/profiles.md` when the profile adds details not covered below. Profiles add fields; they never remove the canonical core.

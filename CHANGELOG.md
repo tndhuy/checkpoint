@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.7] - 2026-08-07
+
+### Added
+- `scope` (`project` default, or `global`) and `role` (free text) resolution, specified in the new `references/scope-and-role.md`: an explicit `--scope`/`--role` flag on `save` overrides and persists the value for the current project; otherwise a previously recorded value is reused silently; otherwise the agent asks once. No new command — `save` doubles as first-run init.
+- `.checkpoint/config.md` project-local marker (`assets/scope-config-template.md`) and a global config keyed by project path for `global` scope. Project scope appends `.checkpoint/` to `.gitignore` when creating it, and never overwrites an existing `.gitignore`.
+- `--trigger manual|post-commit|post-push|stop|pre-compact` flag on `save`, defaulting to `manual`, recording why an automated checkpoint fired.
+- `--scope` filtering flag on `list` and `recall`.
+- `docs/HOOKS.md`: documented, threat-reviewed guidance for wiring auto-checkpoint triggers — a Tier 1 `hookify` message-only rule for post-commit/post-push nudges (preferred, no new permission surface), and a Tier 2 native `Stop`/`PreCompact` hook shortlist for when a passive reminder isn't enough. No hook ships enabled by default; both tiers only ever lead to an explicit `save` invocation, never an autonomous write.
+- `scope` and `role` fields added to the canonical checkpoint frontmatter template.
+- Soft, non-blocking verbosity check in `checkpoint_contract.py` (`verbosity_warnings` on `ValidationResult`): flags total body or any single section over a word-count ceiling without failing the contract, giving the existing "scannable in under one minute" instruction something a benchmark run can actually catch.
+
+### Fixed
+- First-run scope/role resolution no longer blocks writing the checkpoint. A fresh-agent forward test (`benchmarks/results/2026-08-07/`) caught the original wording asking its one-time scope/role question *instead of* rendering the checkpoint on explicit `$checkpoint:save` invocation — contract score 1/18. Corrected wording in `references/scope-and-role.md` and `save/SKILL.md` writes the checkpoint immediately with defaults (`scope: project`, `role: Unknown`) and asks the question alongside it, not in place of it — re-tested at 18/18 on an independently fresh agent.
+
+### Known limitation
+- The scope=`global` and role≠`Unknown` first-run paths, `list`/`recall` `--scope` filtering, and the real Codex app-server protocol were not forward-tested this release — only `save`'s all-defaults first-run path was exercised end-to-end via an isolated text-generation agent. See "Limitations and next proof" in `benchmarks/results/2026-08-07/report.md`.
+
 ## [0.1.6] - 2026-08-04
 
 ### Changed

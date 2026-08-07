@@ -4,6 +4,8 @@ created: YYYY-MM-DD
 updated: YYYY-MM-DD
 status: active
 profile: generic
+scope: project
+role: ""
 project: ""
 branch: ""
 owner: ""

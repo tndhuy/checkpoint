@@ -1,6 +1,6 @@
 ---
 description: Capture evidence-backed task state for reliable resume, handoff, or context switching
-argument-hint: "[optional note, e.g. why you're checkpointing or a destination hint]"
+argument-hint: "[--scope project|global] [--role <text>] [--trigger manual|post-commit|post-push|stop|pre-compact] [optional note, e.g. why you're checkpointing or a destination hint]"
 allowed-tools: Read, Write, Edit
 ---
 

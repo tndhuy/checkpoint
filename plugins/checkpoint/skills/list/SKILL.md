@@ -9,6 +9,8 @@ Find and summarize existing checkpoints. Do not read full contents unless needed
 
 Search the current project's checkpoint or notes location, recent Daily notes when a notes vault is in use, and dedicated handoff notes. Match both standalone files whose frontmatter contains `type: checkpoint` and headings containing `checkpoint` inside larger notes. Do not filter by file-level `type` alone.
 
+Accept `--scope project|global|all` (default `all`): `project` limits the search to this project's own checkpoint location (its `.checkpoint/` or notes convention); `global` limits it to the global store recorded for this project, if one is configured; `all` searches both and reports the scope of each result.
+
 Apply any project, title, or path hint included with the invocation. Report the most recently updated active checkpoints first. For each match, show the available project, branch, status, updated date, title, and enough path to select it unambiguously.
 
 If nothing is found, say so and suggest `$checkpoint:save`; never invent checkpoints.
