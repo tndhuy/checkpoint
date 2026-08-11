@@ -17,7 +17,7 @@ Two values: `project` (default) or `global`.
 
 ### Recording the choice
 
-- If `scope: project` — write `.checkpoint/config.md` at the project root using `assets/scope-config-template.md`. If the project has a `.gitignore`, append `.checkpoint/` to it (create the entry only if not already present; never overwrite the file). If the project has no `.gitignore` at all, ask before creating one — that is a bigger footprint than a checkpoint save should take on its own.
+- If `scope: project` — write `.checkpoint/config.md` at the project root using `assets/scope-config-template.md`. When `.checkpoint/` is created for the first time, also write `.checkpoint/.gitignore` containing a single `*` line so the directory self-excludes from git. Skip this write if `.checkpoint/.gitignore` already exists. Never touch or create the project's own root `.gitignore` for this purpose — the internal file is self-contained and needs no permission to add.
 - If `scope: global` — write nothing inside the project. Instead add or update one entry for this project's absolute path inside the global config at `<global_root>/config.md` (same file that stores `global_root` itself). Checkpoints for this project are written under `<global_root>/<project-slug>/`.
 
 ## Role

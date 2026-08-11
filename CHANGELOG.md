@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.8] - 2026-08-11
+
+### Changed
+- Project-scope `.gitignore` handling no longer touches the project's own root `.gitignore`. Instead, on first creation of `.checkpoint/`, the skill writes a self-contained `.checkpoint/.gitignore` (single `*` line) so the directory excludes itself from git. Removes the "ask before creating a root `.gitignore`" edge case entirely, since nothing outside `.checkpoint/` is written anymore. Updated `references/scope-and-role.md` and `assets/scope-config-template.md` accordingly.
+
 ## [0.1.7] - 2026-08-07
 
 ### Added

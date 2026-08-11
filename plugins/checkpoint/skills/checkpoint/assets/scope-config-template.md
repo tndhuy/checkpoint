@@ -5,7 +5,7 @@ role: ""
 updated: YYYY-MM-DD
 ---
 
-Local project marker. Do not commit if `.gitignore` already excludes `.checkpoint/`.
+Local project marker. Excluded from git via the sibling `.checkpoint/.gitignore` file (not the project's root `.gitignore`).
 
 <!--
 Global config (`<global_root>/config.md`) uses the same frontmatter shape plus
