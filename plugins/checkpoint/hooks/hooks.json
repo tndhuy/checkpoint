@@ -1,0 +1,40 @@
+{
+  "description": "Checkpoint auto-triggers (Tier 2, see docs/HOOKS.md). Message-only reminders around Stop and compaction that lead to an explicit $checkpoint:save invocation — never write a checkpoint on their own.",
+  "hooks": {
+    "PreCompact": [
+      {
+        "matcher": "manual|auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact-reminder.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/post-compact-checkpoint.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-checkpoint.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

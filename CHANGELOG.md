@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.9] - 2026-08-21
+
+### Added
+- Shipped the Tier 2 native hooks described in `docs/HOOKS.md`: `plugins/checkpoint/hooks/hooks.json` wires `PreCompact` (matcher `manual|auto`), `SessionStart` (matcher `compact`), and `Stop`. Each is message-only — `PreCompact` and `SessionStart` write a plain reminder / `additionalContext` pointing at `$checkpoint:save --trigger ...`; `Stop` uses `decision: "block"` with a `stop_hook_active` guard to force (not just nudge) one more turn before the session actually ends, since `PreCompact` cannot block (platform limitation) but `Stop` can. None of the three ever writes a checkpoint file itself.
+
+### Changed
+- Reverses the prior "the plugin itself ships no hook" stance in `docs/HOOKS.md`. Threat review for this exception: the plugin is personal-scope, not published to a public marketplace; the two hooks capable of acting (`SessionStart`, `Stop`) only ever emit a reminder or a block reason — no filesystem write, no network access, no autonomous save. Accepted knowingly as a documented exception to the `docs/DISTRIBUTION.md` "no hooks unless documented need + threat review" bar, scoped to this personal install.
+
 ## [0.1.8] - 2026-08-11
 
 ### Changed
