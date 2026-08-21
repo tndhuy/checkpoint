@@ -10,21 +10,22 @@
 // The forced turn still carries the checkpoint skill's own triviality gate
 // in the reason text ("skip trivial completed Q&A") — automatic here means
 // enforced-if-warranted, not an unconditional checkpoint on every session.
+//
+// Fail-safe direction: an empty/unparseable stdin, or the read timing out,
+// is treated the SAME as `stop_hook_active: true` (i.e. don't block) rather
+// than the same as "no signal, block anyway". A failure to read the one
+// field that prevents re-blocking must never itself cause a block — that
+// would fail exactly on the path the guard exists to prevent.
 
-let input = '';
-const stdinTimeout = setTimeout(() => finish({}), 2000);
-process.stdin.setEncoding('utf8');
-process.stdin.on('data', (chunk) => { input += chunk; });
-process.stdin.on('end', () => {
-  clearTimeout(stdinTimeout);
-  let parsed = {};
-  try { parsed = JSON.parse(input); } catch { /* ignore */ }
-  finish(parsed);
-});
+const { readStdinJson } = require('./lib/read-stdin-json.js');
 
-function finish(parsed) {
-  if (parsed.stop_hook_active) {
-    process.exit(0);
+// Must stay comfortably under this hook's own `timeout: 3` (3000ms) budget
+// declared in hooks.json, leaving headroom for the write + process exit.
+const STDIN_READ_TIMEOUT_MS = 2000;
+
+readStdinJson((parsed, stdinFailed) => {
+  if (parsed.stop_hook_active || stdinFailed) {
+    process.exitCode = 0;
     return;
   }
   process.stdout.write(JSON.stringify({
@@ -35,5 +36,7 @@ function finish(parsed) {
       'human more than 5 minutes), run `$checkpoint:save --trigger stop` now. Skip it for ' +
       'trivial completed Q&A with no follow-up, per the checkpoint skill\'s own gate. Then stop.',
   }));
-  process.exit(0);
-}
+  // exitCode (not exit()) so the process exits naturally once stdout has
+  // actually flushed, instead of risking a truncated write under backpressure.
+  process.exitCode = 0;
+}, { timeoutMs: STDIN_READ_TIMEOUT_MS });

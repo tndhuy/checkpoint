@@ -17,4 +17,6 @@ process.stdout.write(JSON.stringify({
       'follow-up, per the checkpoint skill\'s own gate.',
   },
 }));
-process.exit(0);
+// exitCode (not exit()) so the process exits naturally once stdout has
+// actually flushed, instead of risking a truncated write under backpressure.
+process.exitCode = 0;

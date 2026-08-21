@@ -1,6 +1,6 @@
 {
   "name": "checkpoint",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Capture evidence-backed task state for reliable resume, handoff, context switching, and compaction.",
   "author": {
     "name": "tndhuy"

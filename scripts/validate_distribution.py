@@ -137,7 +137,13 @@ def validate_hooks(plugin: Path) -> list[str]:
     if not isinstance(events, dict) or not events:
         return ["hooks/hooks.json must have a non-empty top-level \"hooks\" object"]
 
-    command_pattern = re.compile(r'"\$\{CLAUDE_PLUGIN_ROOT\}([^"]+)"')
+    # Anchored end-to-end: exactly one interpreter word, then exactly one
+    # double-quoted ${CLAUDE_PLUGIN_ROOT}-relative path, nothing else in the
+    # command string. A looser "contains ${CLAUDE_PLUGIN_ROOT} somewhere"
+    # match would let content appended after the quoted segment (extra
+    # shell operators, `&& curl ...`) through unexamined.
+    command_pattern = re.compile(r'^\S+ "\$\{CLAUDE_PLUGIN_ROOT\}([^"]+)"$')
+    plugin_root = plugin.resolve()
     for event, groups in events.items():
         if not isinstance(groups, list) or not groups:
             errors.append(f"hooks.{event} must be a non-empty array")
@@ -152,13 +158,20 @@ def validate_hooks(plugin: Path) -> list[str]:
                 if not isinstance(command, str) or "${CLAUDE_PLUGIN_ROOT}" not in command:
                     errors.append(f"hooks.{event} command must reference ${{CLAUDE_PLUGIN_ROOT}}: {command!r}")
                     continue
-                match = command_pattern.search(command)
+                match = command_pattern.match(command.strip())
                 if not match:
-                    errors.append(f"hooks.{event} command has an unparseable ${{CLAUDE_PLUGIN_ROOT}} path: {command!r}")
+                    errors.append(f"hooks.{event} command must be exactly '<interpreter> \"${{CLAUDE_PLUGIN_ROOT}}/path\"' with nothing else: {command!r}")
                     continue
-                referenced = plugin / match.group(1).lstrip("/")
+                # Resolve and require containment under the plugin directory —
+                # joining alone does not stop `../../outside` from escaping it.
+                referenced = (plugin / match.group(1).lstrip("/")).resolve()
+                try:
+                    referenced.relative_to(plugin_root)
+                except ValueError:
+                    errors.append(f"hooks.{event} command resolves outside the plugin directory: {referenced}")
+                    continue
                 if not referenced.is_file():
-                    errors.append(f"hooks.{event} references a missing script: {referenced.relative_to(plugin.parent.parent)}")
+                    errors.append(f"hooks.{event} references a missing script: {referenced.relative_to(plugin_root.parent.parent)}")
     return errors
 
 

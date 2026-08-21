@@ -7,23 +7,19 @@
 // marker in the transcript. The real, actionable reminder is
 // post-compact-checkpoint.js on SessionStart(compact).
 
-let input = '';
-const stdinTimeout = setTimeout(() => finish('unknown'), 2000);
-process.stdin.setEncoding('utf8');
-process.stdin.on('data', (chunk) => { input += chunk; });
-process.stdin.on('end', () => {
-  clearTimeout(stdinTimeout);
-  let trigger = 'unknown';
-  try {
-    trigger = JSON.parse(input).trigger || 'unknown';
-  } catch { /* ignore */ }
-  finish(trigger);
-});
+const { readStdinJson } = require('./lib/read-stdin-json.js');
 
-function finish(trigger) {
+// Must stay comfortably under this hook's own `timeout: 3` (3000ms) budget
+// declared in hooks.json, leaving headroom for the write + process exit.
+const STDIN_READ_TIMEOUT_MS = 2000;
+
+readStdinJson((parsed, stdinFailed) => {
+  const trigger = !stdinFailed && typeof parsed.trigger === 'string' ? parsed.trigger : 'unknown';
   process.stdout.write(
     `Compaction is starting (trigger: ${trigger}). If there's unfinished work state worth ` +
     `preserving, run \`$checkpoint:save --trigger pre-compact\` before context is summarized away.`
   );
-  process.exit(0);
-}
+  // exitCode (not exit()) so the process exits naturally once stdout has
+  // actually flushed, instead of risking a truncated write under backpressure.
+  process.exitCode = 0;
+}, { timeoutMs: STDIN_READ_TIMEOUT_MS });
