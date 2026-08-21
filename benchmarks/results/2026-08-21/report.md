@@ -36,3 +36,30 @@ The precedence rule works on the one case it was written for. This does not prov
 - Does not cover the `generic` fallback case (`Next action` spanning two kinds of work equally) described in the same rule addition — untested.
 - Does not cover research-evidence-after-code or operations-mixed-with-developer permutations.
 - No real (non-synthetic) misclassification has ever been observed — this remains proactive coverage, not a regression fix. Revisit if a real case is found not to match this rule's prediction.
+
+## Addendum — recall cold-resume test (same fixture, same day)
+
+`$checkpoint:recall` had zero forward-test coverage anywhere in this repo's history before this run — closing that gap, reusing the `mixed-evidence-profile` checkpoint generated above.
+
+**Method**: two independent fresh agents, neither with tool/filesystem access. Agent A received only the `recall` skill's 5-question instructions plus the checkpoint document generated earlier in this report. Agent B (baseline) received only the raw `task.md` fixture, with no checkpoint, framed as "a raw session log with nothing independently re-verified." Both produced a JSON resume assessment (`current_state`, `exact_next_action`, `scope_boundary`, `done_gate`, `reconstructive_questions`), evaluated with `scripts/evaluate_resume.py` against `benchmarks/fixtures/mixed-evidence-profile/resume-expected.json`.
+
+**Result**:
+```json
+{
+  "passed": false,
+  "missing_keys": [],
+  "invalid_keys": [],
+  "missing_resume_terms": ["feat/rate-limit-middleware"],
+  "reconstructive_questions": 4,
+  "baseline_questions": 10,
+  "fewer_questions_than_baseline": true
+}
+```
+
+**Interpretation**: the core claim holds — checkpoint-fed resume needed 4 reconstructive questions against the baseline's 10 (60% reduction, in line with the 2026-08-02 report's 64.3% finding on the original three fixtures). Recall genuinely reduces reconstruction burden here. But the strict evaluator marks this run FAIL: the agent's structured JSON never restated the branch name (`feat/rate-limit-middleware`) inside the four required fields — it mentioned the branch in a free-text "staleness note" outside the JSON, and in one of its own `reconstructive_questions` ("Is the working directory still ... on branch feat/rate-limit-middleware?"), so the fact was retained and even correctly flagged as needing re-verification, just not echoed where the evaluator checks for it.
+
+This is reported as-is rather than loosened after the fact — changing `resume-expected.json` post-hoc to make this pass would be gaming the test, not fixing anything. Left as an open, honest finding below.
+
+## Known limitation (recall)
+
+- `recall` reliably reduces reconstructive questions versus a raw-log baseline (this run: 4 vs 10), but on this run its structured JSON output didn't always restate every identifying fact (here: the branch name) inside the four required fields, even when the same fact appeared correctly elsewhere in its own answer. Whether this is a fixture-strictness artifact or a real recall-skill gap worth a wording fix is unresolved — single run, not enough evidence either way. Revisit if it recurs.

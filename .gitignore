@@ -5,3 +5,4 @@ __pycache__/
 .DS_Store
 benchmarks/results/tmp/
 .checkpoint/
+.claude/*.local.md

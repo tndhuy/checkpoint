@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.11] - 2026-08-22
+
+### Added
+- `scripts/validate_distribution.py`: `plugins/checkpoint/hooks/hooks.json` is now a required distribution file, plus a new `validate_hooks()` check verifying it's well-formed JSON, every event has a non-empty hook group, and every `command` references `${CLAUDE_PLUGIN_ROOT}` and resolves to a real script under the plugin. `tests/test_distribution.py` gained 3 tests (shipped manifest is valid; catches a missing referenced script; catches a command missing `${CLAUDE_PLUGIN_ROOT}`) — 0.1.9's hook addition had shipped with zero regression coverage until now.
+- `.claude/hookify.suggest-checkpoint.local.md`: the Tier 1 `hookify` rule described in `docs/HOOKS.md` since 0.1.7 existed only as documentation, never as a real file anywhere. Added for this repo (gitignored via `.claude/*.local.md`, matching `.local.md`'s own convention) and confirmed it actually loads via hookify's `load_rules()`.
+- `$checkpoint:recall` forward-test (`benchmarks/results/2026-08-21/report.md`, "Addendum" section): the skill had zero forward-test coverage before this. Cold-resume comparison (checkpoint-fed vs. raw-log-only baseline) on the `mixed-evidence-profile` fixture: 4 reconstructive questions vs. 10 baseline (60% reduction, consistent with 0.1.0's original 64.3% finding). One honest partial-fail noted and left unresolved: the resume JSON didn't restate the branch name inside its required fields on this run, despite retaining and correctly flagging it elsewhere in the same answer — not patched over, tracked as an open question.
+
 ## [0.1.10] - 2026-08-21
 
 ### Added

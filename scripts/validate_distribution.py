@@ -50,6 +50,7 @@ def validate(root: Path = ROOT) -> list[str]:
         skill / "agents/openai.yaml",
         skill / "assets/checkpoint-template.md",
         skill / "references/profiles.md",
+        plugin / "hooks/hooks.json",
         *(plugin / "skills" / name / "SKILL.md" for name in CODEX_SKILLS),
     )
     for path in required:
@@ -119,6 +120,45 @@ def validate(root: Path = ROOT) -> list[str]:
     for relative in re.findall(r"(?:references|assets)/[A-Za-z0-9._/-]+", skill_text):
         if not (skill / relative.rstrip(".,;)")).is_file():
             errors.append(f"broken skill resource reference: {relative}")
+
+    errors.extend(validate_hooks(plugin))
+    return errors
+
+
+def validate_hooks(plugin: Path) -> list[str]:
+    errors: list[str] = []
+    hooks_file = plugin / "hooks" / "hooks.json"
+    try:
+        manifest = load_json(hooks_file)
+    except (json.JSONDecodeError, ValueError) as exc:
+        return [f"hooks/hooks.json is not valid JSON: {exc}"]
+
+    events = manifest.get("hooks")
+    if not isinstance(events, dict) or not events:
+        return ["hooks/hooks.json must have a non-empty top-level \"hooks\" object"]
+
+    command_pattern = re.compile(r'"\$\{CLAUDE_PLUGIN_ROOT\}([^"]+)"')
+    for event, groups in events.items():
+        if not isinstance(groups, list) or not groups:
+            errors.append(f"hooks.{event} must be a non-empty array")
+            continue
+        for group in groups:
+            entries = group.get("hooks") if isinstance(group, dict) else None
+            if not isinstance(entries, list) or not entries:
+                errors.append(f"hooks.{event} has a group with no \"hooks\" array")
+                continue
+            for entry in entries:
+                command = entry.get("command") if isinstance(entry, dict) else None
+                if not isinstance(command, str) or "${CLAUDE_PLUGIN_ROOT}" not in command:
+                    errors.append(f"hooks.{event} command must reference ${{CLAUDE_PLUGIN_ROOT}}: {command!r}")
+                    continue
+                match = command_pattern.search(command)
+                if not match:
+                    errors.append(f"hooks.{event} command has an unparseable ${{CLAUDE_PLUGIN_ROOT}} path: {command!r}")
+                    continue
+                referenced = plugin / match.group(1).lstrip("/")
+                if not referenced.is_file():
+                    errors.append(f"hooks.{event} references a missing script: {referenced.relative_to(plugin.parent.parent)}")
     return errors
 
 

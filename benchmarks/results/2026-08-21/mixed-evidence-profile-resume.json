@@ -1,0 +1,12 @@
+{
+  "current_state": "The goal is to make token-bucket-rs actually enforce rate limiting on the request path in middleware/throttle.py, so the failing burst-limiting test passes. Currently, Cargo.toml has token-bucket-rs added as a dependency, and RateLimiter::new(capacity, refill_rate) is correctly constructed in middleware/throttle.py via FFI bindings, but RateLimiter.acquire() is never called on the request path, so all requests pass through unthrottled. This was verified by running `cargo test --lib rate_limit` (passes, library-level only) and `pytest tests/middleware/test_throttle.py -q` (fails: test_burst_requests_are_limited expects the 401st request in a 1-second burst to be rejected, but it currently passes through). Separately, the choice of token-bucket-rs over sliding-window-py was verified earlier this session by checking each library's README/benchmark suite and running token-bucket-rs's own `cargo bench --bench burst` locally, confirming it handles the service's ~400 req/s for 2s bursts without dropping requests.",
+  "exact_next_action": "Call RateLimiter.acquire() at the top of middleware/throttle.py's request handler, returning HTTP 429 when it returns false, then rerun `pytest tests/middleware/test_throttle.py -q` (and ultimately the full suite via the resume command).",
+  "scope_boundary": "Allowed scope is limited to middleware/throttle.py and Cargo.toml only. Hard constraint (Do not): do not change the public request-handling API that other middleware depends on.",
+  "done_gate": "test_burst_requests_are_limited passes, and this reflects token-bucket-rs being genuinely enforced on the request path (not just constructed) — confirmed by rerunning `pytest tests/middleware/ -q` per the resume command.",
+  "reconstructive_questions": [
+    "Is the working directory still /workspace/api-gateway on branch feat/rate-limit-middleware, and is the working tree still clean apart from the two noted file changes? (checkpoint state may be stale)",
+    "What does middleware/throttle.py's request handler currently look like (exact function signature, where the request is short-circuited, how errors/responses are returned) so the acquire()/429 call can be inserted correctly?",
+    "What is the exact FFI-bound signature/return type of RateLimiter.acquire() (e.g., bool vs Result) so the 429 branch is wired correctly?",
+    "Are there really no other running processes, and has nothing else changed in the repo since this checkpoint was written?"
+  ]
+}

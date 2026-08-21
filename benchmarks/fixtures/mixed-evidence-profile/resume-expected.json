@@ -1,0 +1,10 @@
+{
+  "resume_required_terms": [
+    "feat/rate-limit-middleware",
+    "middleware/throttle.py",
+    "RateLimiter.acquire()",
+    "429",
+    "test_burst_requests_are_limited",
+    "do not change the public request-handling api"
+  ]
+}
