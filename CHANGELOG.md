@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.10] - 2026-08-21
+
+### Added
+- Profile-precedence rule in `references/profiles.md` and `SKILL.md`'s "Select profile" section: when a task carries evidence for more than one profile, the profile is decided by `Next action`, not by which evidence appeared first or is most abundant. A worked example (research that concludes into implementation → `developer`) is included. Proactive change — no real misclassification was observed; added because the existing rule was silent on the mixed-evidence case.
+- `benchmarks/fixtures/mixed-evidence-profile/` fixture and `benchmarks/results/2026-08-21/` forward-test evidence (19/19, fresh agent with no visibility into the expected result correctly chose `developer` on a task that opened with research evidence).
+
+### Known limitation
+- The rule's `generic`-fallback branch (`Next action` spanning two kinds of work equally) and other evidence-order permutations (research-after-code, operations-mixed-with-developer) are undocumented by fixture coverage — only the research-then-code shape was forward-tested this release.
+
 ## [0.1.9] - 2026-08-21
 
 ### Added

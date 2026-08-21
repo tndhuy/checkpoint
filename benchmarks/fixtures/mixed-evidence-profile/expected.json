@@ -1,0 +1,11 @@
+{
+  "profile": "developer",
+  "required_terms": [
+    "feat/rate-limit-middleware",
+    "middleware/throttle.py",
+    "RateLimiter.acquire()",
+    "token-bucket-rs",
+    "test_burst_requests_are_limited",
+    "do not change the public request-handling api"
+  ]
+}

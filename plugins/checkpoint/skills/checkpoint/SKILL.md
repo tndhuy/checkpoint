@@ -30,7 +30,7 @@ Resolve `scope` (`project` default, or `global`) and `role` (free text) once per
 
 ## Select profile
 
-Use `generic` unless evidence supports a more specific profile. Repository, branch, source path, test or migration evidence selects `developer`; services, processes or machine metrics select `operations`; research questions, claims or sources select `research`. Read `references/profiles.md` when the profile adds details not covered below. Profiles add fields; they never remove the canonical core.
+Use `generic` unless evidence supports a more specific profile. Repository, branch, source path, test or migration evidence selects `developer`; services, processes or machine metrics select `operations`; research questions, claims or sources select `research`. When evidence for more than one profile is present, the profile is decided by `Next action`, not by which evidence appeared first or is most abundant — see `references/profiles.md` for the precedence rule and a worked example. Read `references/profiles.md` when the profile adds details not covered below. Profiles add fields; they never remove the canonical core.
 
 ## Gather evidence
 
