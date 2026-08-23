@@ -6,4 +6,4 @@ allowed-tools: Read, Grep, Glob
 
 Follow the host-neutral list skill below in full.
 
-@./skills/list/SKILL.md
+@${CLAUDE_PLUGIN_ROOT}/skills/list/SKILL.md

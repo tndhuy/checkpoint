@@ -6,6 +6,6 @@ allowed-tools: Read, Write, Edit
 
 The user explicitly invoked the checkpoint save command. Follow the host-neutral save skill below in full, then write the checkpoint now.
 
-@./skills/save/SKILL.md
+@${CLAUDE_PLUGIN_ROOT}/skills/save/SKILL.md
 
 Additional context from the user for this invocation, if any: $ARGUMENTS

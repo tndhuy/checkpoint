@@ -6,4 +6,4 @@ allowed-tools: Read, Grep, Glob
 
 Follow the host-neutral recall skill below in full.
 
-@./skills/recall/SKILL.md
+@${CLAUDE_PLUGIN_ROOT}/skills/recall/SKILL.md

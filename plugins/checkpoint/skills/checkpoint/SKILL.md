@@ -60,7 +60,7 @@ Required sections:
 - Blocker or risk
 - Done when
 
-Add decisions and a resume command only when useful. Label important open loops:
+Add decisions and a resume command only when useful — except for developer checkpoints, where `Resume command` is always required per the line above. Label important open loops:
 
 - `promote`: proven and ready to become a current standard;
 - `park`: intentionally paused with reason and revisit condition;

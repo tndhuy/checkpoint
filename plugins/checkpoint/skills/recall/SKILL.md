@@ -7,7 +7,7 @@ description: Find and load the most relevant saved checkpoint, verify stale evid
 
 Locate and load one checkpoint to resume work from. Search both standalone `type: checkpoint` files and headings containing `checkpoint` inside larger project or Daily notes.
 
-Accept `--scope project|global` to narrow the search to one location when a project has checkpoints recorded in both (uncommon, but possible after a scope change).
+Accept `--scope project|global` to narrow the search to one location when a project has checkpoints recorded in both (uncommon, but possible after a scope change). See `../checkpoint/references/scope-and-role.md` ("Recording the choice") for where these locations are actually recorded — `.checkpoint/config.md` for project scope, `<global_root>/config.md` for global.
 
 Use any project, title, or path hint included with the invocation. Otherwise prefer an active checkpoint matching the current project or working directory, then the most recently updated candidate. If multiple candidates remain plausible, ask exactly one multiple-choice question in the user's language and stop before reading further.
 

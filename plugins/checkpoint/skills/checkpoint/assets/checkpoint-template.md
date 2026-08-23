@@ -5,7 +5,7 @@ updated: YYYY-MM-DD
 status: active
 profile: generic
 scope: project
-role: ""
+role: Unknown
 project: ""
 branch: ""
 owner: ""
@@ -46,5 +46,5 @@ owner: ""
 
 ## Resume command
 ```sh
-# optional
+# exact command, or Unknown
 ```

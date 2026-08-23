@@ -53,7 +53,12 @@ class SkillInstructionTests(unittest.TestCase):
         for name in ("save", "list", "recall"):
             with self.subTest(name=name):
                 content = (commands / f"{name}.md").read_text(encoding="utf-8")
-                self.assertIn(f"@./skills/{name}/SKILL.md", content)
+                # Must be anchored to ${CLAUDE_PLUGIN_ROOT} — a bare "./skills/..." resolves
+                # relative to the invoking user's cwd, not the plugin's install location,
+                # and silently fails to include the skill body (see plugin-dev's own
+                # Good/Bad @-reference guidance).
+                self.assertIn(f"@${{CLAUDE_PLUGIN_ROOT}}/skills/{name}/SKILL.md", content)
+                self.assertNotIn(f"@./skills/{name}/SKILL.md", content)
 
 
 if __name__ == "__main__":

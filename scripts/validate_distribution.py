@@ -116,10 +116,13 @@ def validate(root: Path = ROOT) -> list[str]:
         if marker:
             errors.append(f"private path marker {marker!r} in {path.relative_to(root)}")
 
-    skill_text = (skill / "SKILL.md").read_text(encoding="utf-8")
-    for relative in re.findall(r"(?:references|assets)/[A-Za-z0-9._/-]+", skill_text):
-        if not (skill / relative.rstrip(".,;)")).is_file():
-            errors.append(f"broken skill resource reference: {relative}")
+    resource_pattern = r"(?:\.\./[A-Za-z0-9._-]+/)?(?:references|assets)/[A-Za-z0-9._/-]+"
+    for name in CODEX_SKILLS:
+        skill_dir = plugin / "skills" / name
+        skill_text = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
+        for relative in re.findall(resource_pattern, skill_text):
+            if not (skill_dir / relative.rstrip(".,;)")).is_file():
+                errors.append(f"broken skill resource reference in {name}/SKILL.md: {relative}")
 
     errors.extend(validate_hooks(plugin))
     return errors
