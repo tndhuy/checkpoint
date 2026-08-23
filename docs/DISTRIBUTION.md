@@ -43,7 +43,7 @@ Use semantic versioning. Keep these values identical:
 - `plugins/checkpoint/.codex-plugin/plugin.json`
 - `plugins/checkpoint/.claude-plugin/plugin.json`
 
-Codex discovers the plugin's `skills/` directory and exposes `$checkpoint:checkpoint`, `$checkpoint:save`, `$checkpoint:list`, and `$checkpoint:recall`. Claude Code continues to expose `/checkpoint:save`, `/checkpoint:list`, and `/checkpoint:recall` from `commands/`.
+Both hosts discover the plugin's `skills/` directory directly — no separate `commands/` directory. Codex exposes `$checkpoint:checkpoint`, `$checkpoint:save`, `$checkpoint:list`, and `$checkpoint:recall`; Claude Code exposes the same three as `/checkpoint:save`, `/checkpoint:list`, `/checkpoint:recall` (via `argument-hint`/`allowed-tools` on each skill's own frontmatter — Claude Code merges command and skill invocation, and a skill takes precedence over any same-named `commands/` file, so a separate wrapper directory added nothing but drift risk).
 - `.claude-plugin/marketplace.json`
 
 The deterministic distribution validator blocks drift.

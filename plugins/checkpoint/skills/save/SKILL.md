@@ -1,6 +1,8 @@
 ---
 name: save
 description: Save the current task as an evidence-backed checkpoint for reliable resume, handoff, or context switching. Use when the user invokes $checkpoint:save or explicitly asks to save checkpoint state now.
+argument-hint: "[--scope project|global] [--role <text>] [--trigger manual|post-commit|post-push|stop|pre-compact] [optional note, e.g. why you're checkpointing or a destination hint]"
+allowed-tools: Read, Write, Edit
 ---
 
 # Save checkpoint

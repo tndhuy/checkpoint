@@ -48,17 +48,19 @@ class SkillInstructionTests(unittest.TestCase):
                 self.assertIn(f"name: {name}", content)
                 self.assertNotIn("../../commands/", content)
 
-    def test_claude_commands_delegate_to_host_neutral_skills(self):
-        commands = ROOT / "plugins" / "checkpoint" / "commands"
+    def test_skills_carry_slash_command_frontmatter(self):
+        # No separate commands/ directory: Claude Code merges command and skill
+        # invocation, and a skill takes precedence over any same-named commands/
+        # file, so commands/ added nothing but a second place for this to drift.
+        # Each skill's own frontmatter must carry what a command file used to.
         for name in ("save", "list", "recall"):
             with self.subTest(name=name):
-                content = (commands / f"{name}.md").read_text(encoding="utf-8")
-                # Must be anchored to ${CLAUDE_PLUGIN_ROOT} — a bare "./skills/..." resolves
-                # relative to the invoking user's cwd, not the plugin's install location,
-                # and silently fails to include the skill body (see plugin-dev's own
-                # Good/Bad @-reference guidance).
-                self.assertIn(f"@${{CLAUDE_PLUGIN_ROOT}}/skills/{name}/SKILL.md", content)
-                self.assertNotIn(f"@./skills/{name}/SKILL.md", content)
+                content = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
+                self.assertIn("argument-hint:", content)
+                self.assertIn("allowed-tools:", content)
+
+    def test_no_stray_commands_directory(self):
+        self.assertFalse((ROOT / "plugins" / "checkpoint" / "commands").exists())
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 ---
 name: list
 description: List saved checkpoints by project, title, status, or path without loading full checkpoint contents. Use when the user invokes $checkpoint:list or asks what checkpoints are available.
+argument-hint: "[--scope project|global|all] [optional project, title, or path filter]"
+allowed-tools: Read, Grep, Glob
 ---
 
 # List checkpoints

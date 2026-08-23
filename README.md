@@ -61,6 +61,11 @@ claude plugin install checkpoint@checkpoint-skill
 
 Restart Claude Code after installation.
 
+Claude Code exposes the same three skills as `/checkpoint:save`, `/checkpoint:list`,
+and `/checkpoint:recall` — no separate `commands/` directory; Claude Code merges
+command and skill invocation, so each skill's own `argument-hint`/`allowed-tools`
+frontmatter drives the slash-command UX directly.
+
 ### Direct skill discovery
 
 Hosts supporting the open Agent Skills layout can point their discovery directory at:

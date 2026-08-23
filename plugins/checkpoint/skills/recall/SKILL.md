@@ -1,6 +1,8 @@
 ---
 name: recall
 description: Find and load the most relevant saved checkpoint, verify stale evidence, and prepare the exact next resume action. Use when the user invokes $checkpoint:recall or asks to resume saved checkpoint work.
+argument-hint: "[--scope project|global] [optional project, title, or path to disambiguate]"
+allowed-tools: Read, Grep, Glob
 ---
 
 # Recall checkpoint

@@ -1,9 +1,0 @@
----
-description: Find the most relevant saved checkpoint, read it back, and resume from it
-argument-hint: "[--scope project|global] [optional project, title, or path to disambiguate]"
-allowed-tools: Read, Grep, Glob
----
-
-Follow the host-neutral recall skill below in full.
-
-@${CLAUDE_PLUGIN_ROOT}/skills/recall/SKILL.md

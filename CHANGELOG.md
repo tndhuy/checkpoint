@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.15] - 2026-08-23
+
+### Changed
+- Removed `plugins/checkpoint/commands/` entirely. Verified against official Claude Code docs (`code.claude.com/docs/en/skills.md`): "Custom commands have been merged into skills" — a `SKILL.md` with `argument-hint`/`allowed-tools` in its frontmatter produces the identical `/checkpoint:<name>` slash-command UX a `commands/<name>.md` wrapper did, and critically: **if a skill and a command share the same name, the skill silently wins** — meaning `commands/save.md` (and `list.md`, `recall.md`) had likely never actually been the thing invoked for `/checkpoint:save` etc. since the identically-named skill already took precedence, making the just-fixed `${CLAUDE_PLUGIN_ROOT}` reference in 0.1.14 correct-but-possibly-moot and the wrapper layer pure drift risk with no functional benefit. Moved `argument-hint` and `allowed-tools` directly into `skills/{save,list,recall}/SKILL.md` frontmatter. `docs/DISTRIBUTION.md` and `README.md` updated to describe the collapsed architecture; `test_claude_commands_delegate_to_host_neutral_skills` replaced with `test_skills_carry_slash_command_frontmatter` and `test_no_stray_commands_directory`.
+- Note: official docs do NOT call `commands/` "deprecated" or "legacy" for Claude Code specifically (only "skills/ for new plugins") — that framing in the review that prompted this change overstated the case. This plugin retired `commands/` because it was redundant and silently shadowed, not because it was formally deprecated.
+
 ## [0.1.14] - 2026-08-23
 
 ### Fixed
