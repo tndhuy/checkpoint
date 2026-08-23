@@ -1,44 +1,79 @@
 import json
+import os
 import subprocess
-import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 HOOKS = Path(__file__).resolve().parents[1] / "plugins" / "checkpoint" / "hooks"
 
 
-def run_hook(name: str, stdin: str, timeout: float = 5.0) -> subprocess.CompletedProcess:
+def run_hook(name: str, stdin: str, env: dict | None = None, timeout: float = 5.0) -> subprocess.CompletedProcess:
+    full_env = {**os.environ, **(env or {})}
     return subprocess.run(
         ["node", str(HOOKS / name)],
         input=stdin,
         capture_output=True,
         text=True,
         timeout=timeout,
+        env=full_env,
     )
 
 
 class StopCheckpointTests(unittest.TestCase):
+    def setUp(self):
+        # Isolate the cooldown marker per test — the real hook shares one
+        # file across invocations by design, which would make these tests
+        # order-dependent (and flaky under repeated runs) if left unset.
+        self._cooldown_dir = tempfile.TemporaryDirectory()
+        self.cooldown_file = str(Path(self._cooldown_dir.name) / "cooldown.json")
+
+    def tearDown(self):
+        self._cooldown_dir.cleanup()
+
+    def run_stop(self, stdin: str) -> subprocess.CompletedProcess:
+        return run_hook(
+            "stop-checkpoint.js", stdin, env={"CHECKPOINT_STOP_COOLDOWN_FILE": self.cooldown_file}
+        )
+
     def test_blocks_on_normal_stop(self):
-        result = run_hook("stop-checkpoint.js", "{}")
+        result = self.run_stop("{}")
         self.assertEqual(result.returncode, 0)
         payload = json.loads(result.stdout)
         self.assertEqual(payload["decision"], "block")
         self.assertIn("checkpoint:save", payload["reason"])
 
     def test_does_not_block_when_stop_hook_active(self):
-        result = run_hook("stop-checkpoint.js", json.dumps({"stop_hook_active": True}))
+        result = self.run_stop(json.dumps({"stop_hook_active": True}))
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout, "")
 
     def test_fails_safe_not_block_on_empty_stdin(self):
-        result = run_hook("stop-checkpoint.js", "")
+        result = self.run_stop("")
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout, "", "empty/unparseable stdin must not force a block")
 
     def test_fails_safe_not_block_on_malformed_json(self):
-        result = run_hook("stop-checkpoint.js", "{not valid json")
+        result = self.run_stop("{not valid json")
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout, "", "malformed stdin must not force a block")
+
+    def test_cooldown_suppresses_repeat_block(self):
+        first = self.run_stop("{}")
+        self.assertEqual(json.loads(first.stdout)["decision"], "block")
+        second = self.run_stop("{}")
+        self.assertEqual(second.stdout, "", "a second Stop within the cooldown window must not block again")
+
+    def test_cooldown_expires(self):
+        Path(self.cooldown_file).write_text(json.dumps({"lastBlockedAt": 0}))  # far in the past
+        result = self.run_stop("{}")
+        self.assertEqual(json.loads(result.stdout)["decision"], "block")
+
+    def test_corrupt_cooldown_file_does_not_crash(self):
+        Path(self.cooldown_file).write_text("not json")
+        result = self.run_stop("{}")
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(json.loads(result.stdout)["decision"], "block")
 
 
 class PreCompactReminderTests(unittest.TestCase):

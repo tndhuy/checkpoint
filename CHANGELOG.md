@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.13] - 2026-08-22
+
+### Fixed
+- `stop-checkpoint.js` was blocking too often in real use: several other host plugins also register `Stop` hooks, so a session can see many close-together `Stop` events, and every one not already covered by the same-turn `stop_hook_active` guard triggered a block. Added a 20-minute cooldown (tracked in a tmp-dir marker file, overridable via `CHECKPOINT_STOP_COOLDOWN_FILE` for tests) — this is the timestamp-diff cooldown `docs/HOOKS.md` called for since 0.1.7 and 0.1.9–0.1.12 explicitly left unimplemented for lack of real evidence it was needed; it's needed now. 3 new regression tests (suppresses a repeat block, cooldown expires, corrupt cooldown file doesn't crash).
+- Shortened the `reason` text shown on every block — same instruction, much less to read/re-read on a hook that now fires more than once per session by design.
+
+### Reviewed, not changed
+- The other ~4-7 Stop hooks seen firing alongside this one each session (`claude-mem`, `context-mode`, `hookify`, `security-guidance`, plus 2 raw host-level hooks) are a systemic host-config concern, not something this plugin can or should fix — out of scope for `checkpoint-skill`, flagged for a separate audit if wanted.
+
 ## [0.1.12] - 2026-08-22
 
 ### Fixed

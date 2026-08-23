@@ -16,25 +16,56 @@
 // than the same as "no signal, block anyway". A failure to read the one
 // field that prevents re-blocking must never itself cause a block — that
 // would fail exactly on the path the guard exists to prevent.
+//
+// Cooldown: real-world use surfaced this blocking too often in a session
+// with many short Stop events close together (e.g. one every reply, since
+// several other host plugins also register Stop hooks and the two are easy
+// to conflate). A lightweight cross-invocation cooldown (default 20 min,
+// tracked in a tmp-dir marker file — no filesystem knowledge of where any
+// checkpoint actually lives, deliberately dumb) skips repeat blocks within
+// the window instead of nagging every single stop.
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const { readStdinJson } = require('./lib/read-stdin-json.js');
 
 // Must stay comfortably under this hook's own `timeout: 3` (3000ms) budget
 // declared in hooks.json, leaving headroom for the write + process exit.
 const STDIN_READ_TIMEOUT_MS = 2000;
 
+const COOLDOWN_MS = 20 * 60 * 1000;
+const COOLDOWN_FILE =
+  process.env.CHECKPOINT_STOP_COOLDOWN_FILE || path.join(os.tmpdir(), 'checkpoint-skill-stop-cooldown.json');
+
+function withinCooldown() {
+  try {
+    const { lastBlockedAt } = JSON.parse(fs.readFileSync(COOLDOWN_FILE, 'utf8'));
+    return typeof lastBlockedAt === 'number' && Date.now() - lastBlockedAt < COOLDOWN_MS;
+  } catch {
+    return false;
+  }
+}
+
+function recordBlock() {
+  try {
+    fs.writeFileSync(COOLDOWN_FILE, JSON.stringify({ lastBlockedAt: Date.now() }));
+  } catch {
+    // best-effort — a failed write just means the next invocation won't see a cooldown
+  }
+}
+
 readStdinJson((parsed, stdinFailed) => {
-  if (parsed.stop_hook_active || stdinFailed) {
+  if (parsed.stop_hook_active || stdinFailed || withinCooldown()) {
     process.exitCode = 0;
     return;
   }
+  recordBlock();
   process.stdout.write(JSON.stringify({
     decision: 'block',
     reason:
-      'Before actually ending this session: if there is unfinished/reconstructable state ' +
-      '(open decisions, exact file states, pending approvals — reconstruction would take a ' +
-      'human more than 5 minutes), run `$checkpoint:save --trigger stop` now. Skip it for ' +
-      'trivial completed Q&A with no follow-up, per the checkpoint skill\'s own gate. Then stop.',
+      'Unsaved state? Run `$checkpoint:save --trigger stop` now (skip trivial Q&A, ' +
+      'per the checkpoint skill\'s own gate).',
   }));
   // exitCode (not exit()) so the process exits naturally once stdout has
   // actually flushed, instead of risking a truncated write under backpressure.
