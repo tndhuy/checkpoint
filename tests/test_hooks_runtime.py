@@ -31,10 +31,11 @@ class StopCheckpointTests(unittest.TestCase):
     def tearDown(self):
         self._cooldown_dir.cleanup()
 
-    def run_stop(self, stdin: str) -> subprocess.CompletedProcess:
-        return run_hook(
-            "stop-checkpoint.js", stdin, env={"CHECKPOINT_STOP_COOLDOWN_FILE": self.cooldown_file}
-        )
+    def run_stop(self, stdin: str, config_file: str | None = None) -> subprocess.CompletedProcess:
+        env = {"CHECKPOINT_STOP_COOLDOWN_FILE": self.cooldown_file}
+        if config_file is not None:
+            env["CHECKPOINT_CONFIG_FILE"] = config_file
+        return run_hook("stop-checkpoint.js", stdin, env=env)
 
     def test_blocks_on_normal_stop(self):
         result = self.run_stop("{}")
@@ -75,6 +76,52 @@ class StopCheckpointTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertEqual(json.loads(result.stdout)["decision"], "block")
 
+    def test_hooks_enabled_false_suppresses_block(self):
+        with tempfile.TemporaryDirectory() as d:
+            config_file = str(Path(d) / "config.md")
+            Path(config_file).write_text("---\nhooks_enabled: false\n---\n")
+            result = self.run_stop("{}", config_file=config_file)
+            self.assertEqual(result.returncode, 0)
+            self.assertEqual(result.stdout, "")
+
+    def test_custom_cooldown_zero_never_suppresses(self):
+        with tempfile.TemporaryDirectory() as d:
+            config_file = str(Path(d) / "config.md")
+            Path(config_file).write_text("---\nstop_cooldown_minutes: 0\n---\n")
+            first = self.run_stop("{}", config_file=config_file)
+            self.assertEqual(json.loads(first.stdout)["decision"], "block")
+            second = self.run_stop("{}", config_file=config_file)
+            self.assertEqual(
+                json.loads(second.stdout)["decision"],
+                "block",
+                "a 0-minute cooldown must never suppress a repeat block",
+            )
+
+    def test_missing_config_file_defaults_to_enabled_with_20min_cooldown(self):
+        with tempfile.TemporaryDirectory() as d:
+            config_file = str(Path(d) / "does-not-exist.md")
+            result = self.run_stop("{}", config_file=config_file)
+            self.assertEqual(json.loads(result.stdout)["decision"], "block")
+
+    def test_malformed_config_file_fails_open_to_defaults(self):
+        with tempfile.TemporaryDirectory() as d:
+            config_file = str(Path(d) / "config.md")
+            Path(config_file).write_text("not frontmatter at all")
+            result = self.run_stop("{}", config_file=config_file)
+            self.assertEqual(result.returncode, 0)
+            self.assertEqual(json.loads(result.stdout)["decision"], "block")
+
+    def test_invalid_cooldown_value_falls_back_to_default(self):
+        with tempfile.TemporaryDirectory() as d:
+            config_file = str(Path(d) / "config.md")
+            Path(config_file).write_text("---\nstop_cooldown_minutes: not-a-number\n---\n")
+            first = self.run_stop("{}", config_file=config_file)
+            self.assertEqual(json.loads(first.stdout)["decision"], "block")
+            second = self.run_stop("{}", config_file=config_file)
+            self.assertEqual(
+                second.stdout, "", "an invalid cooldown value must fall back to the 20-minute default, not 0"
+            )
+
 
 class PreCompactReminderTests(unittest.TestCase):
     def test_echoes_known_trigger(self):
@@ -93,6 +140,18 @@ class PreCompactReminderTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("trigger: unknown", result.stdout)
 
+    def test_hooks_enabled_false_suppresses_reminder(self):
+        with tempfile.TemporaryDirectory() as d:
+            config_file = str(Path(d) / "config.md")
+            Path(config_file).write_text("---\nhooks_enabled: false\n---\n")
+            result = run_hook(
+                "pre-compact-reminder.js",
+                json.dumps({"trigger": "manual"}),
+                env={"CHECKPOINT_CONFIG_FILE": config_file},
+            )
+            self.assertEqual(result.returncode, 0)
+            self.assertEqual(result.stdout, "")
+
 
 class PostCompactCheckpointTests(unittest.TestCase):
     def test_emits_session_start_context(self):
@@ -101,6 +160,33 @@ class PostCompactCheckpointTests(unittest.TestCase):
         payload = json.loads(result.stdout)
         self.assertEqual(payload["hookSpecificOutput"]["hookEventName"], "SessionStart")
         self.assertIn("checkpoint:save", payload["hookSpecificOutput"]["additionalContext"])
+
+    def test_still_emits_context_when_stdin_is_empty(self):
+        # Empty stdin means stdinFailed=true means cwd is unknown — this
+        # must never suppress the reminder (see the hook's own comment on
+        # fail-open-to-emit). Config-driven suppression only applies when
+        # cwd/config were actually readable.
+        with tempfile.TemporaryDirectory() as d:
+            config_file = str(Path(d) / "config.md")
+            Path(config_file).write_text("---\nhooks_enabled: false\n---\n")
+            result = run_hook(
+                "post-compact-checkpoint.js", "", env={"CHECKPOINT_CONFIG_FILE": config_file}
+            )
+            self.assertEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["hookSpecificOutput"]["hookEventName"], "SessionStart")
+
+    def test_hooks_enabled_false_suppresses_context_with_valid_stdin(self):
+        with tempfile.TemporaryDirectory() as d:
+            config_file = str(Path(d) / "config.md")
+            Path(config_file).write_text("---\nhooks_enabled: false\n---\n")
+            result = run_hook(
+                "post-compact-checkpoint.js",
+                json.dumps({"cwd": d}),
+                env={"CHECKPOINT_CONFIG_FILE": config_file},
+            )
+            self.assertEqual(result.returncode, 0)
+            self.assertEqual(result.stdout, "")
 
 
 if __name__ == "__main__":

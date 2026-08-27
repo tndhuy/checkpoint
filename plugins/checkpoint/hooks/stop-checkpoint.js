@@ -24,24 +24,30 @@
 // tracked in a tmp-dir marker file — no filesystem knowledge of where any
 // checkpoint actually lives, deliberately dumb) skips repeat blocks within
 // the window instead of nagging every single stop.
+//
+// Per-project override: `.checkpoint/config.md` may set `hooks_enabled:
+// false` to silence this hook entirely, or `stop_cooldown_minutes: N` to
+// change the cooldown window — see lib/read-project-config.js. Both fail
+// open to the pre-existing defaults (enabled, 20 minutes) on any read or
+// parse error.
 
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { readStdinJson } = require('./lib/read-stdin-json.js');
+const { readProjectConfig } = require('./lib/read-project-config.js');
 
 // Must stay comfortably under this hook's own `timeout: 3` (3000ms) budget
 // declared in hooks.json, leaving headroom for the write + process exit.
 const STDIN_READ_TIMEOUT_MS = 2000;
 
-const COOLDOWN_MS = 20 * 60 * 1000;
 const COOLDOWN_FILE =
   process.env.CHECKPOINT_STOP_COOLDOWN_FILE || path.join(os.tmpdir(), 'checkpoint-skill-stop-cooldown.json');
 
-function withinCooldown() {
+function withinCooldown(cooldownMs) {
   try {
     const { lastBlockedAt } = JSON.parse(fs.readFileSync(COOLDOWN_FILE, 'utf8'));
-    return typeof lastBlockedAt === 'number' && Date.now() - lastBlockedAt < COOLDOWN_MS;
+    return typeof lastBlockedAt === 'number' && Date.now() - lastBlockedAt < cooldownMs;
   } catch {
     return false;
   }
@@ -56,7 +62,13 @@ function recordBlock() {
 }
 
 readStdinJson((parsed, stdinFailed) => {
-  if (parsed.stop_hook_active || stdinFailed || withinCooldown()) {
+  const config = readProjectConfig(parsed.cwd);
+  if (!config.hooksEnabled) {
+    process.exitCode = 0;
+    return;
+  }
+  const cooldownMs = config.stopCooldownMinutes * 60 * 1000;
+  if (parsed.stop_hook_active || stdinFailed || withinCooldown(cooldownMs)) {
     process.exitCode = 0;
     return;
   }

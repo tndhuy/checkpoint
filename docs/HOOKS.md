@@ -42,6 +42,15 @@ Any cooldown/debounce (to avoid nagging on every `Stop`) belongs inside the wire
 
 **Not recommended:** a native `PostToolUse` hook duplicating the commit/push match Tier 1 already covers with less code.
 
+## Per-project settings
+
+`.checkpoint/config.md` (see `assets/scope-config-template.md` in the `checkpoint` skill) accepts two optional fields, hand-added — `save` never writes them itself:
+
+- `hooks_enabled: true|false` — `false` silences all three Tier-2 hooks (`Stop`, `PreCompact`, `SessionStart`) for this project. Default `true`.
+- `stop_cooldown_minutes: N` — overrides the `Stop` hook's cooldown window (see above). `0` means never suppress a repeat block. Default `20`.
+
+Both read via `plugins/checkpoint/hooks/lib/read-project-config.js`, which fails open to the defaults above on a missing file, missing field, or malformed value — a broken config can never make a hook behave worse than it did before this file existed. `post-compact-checkpoint.js` needs `cwd` (only available via stdin) to locate the config, so it now waits on a stdin read before emitting; an empty/unparseable/timed-out stdin still emits its reminder unconditionally, same as before this feature existed.
+
 ## The `--trigger` flag
 
 Whichever tier fires, the resulting invocation should pass `--trigger manual|post-commit|post-push|stop|pre-compact` to `save` so the checkpoint records why it exists — see `references/scope-and-role.md` in the `checkpoint` skill.

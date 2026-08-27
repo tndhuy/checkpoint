@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.16] - 2026-08-27
+
+### Added
+- Two optional `.checkpoint/config.md` fields, hand-added (not written by `save`): `hooks_enabled: true|false` silences all three Tier-2 hooks (`Stop`, `PreCompact`, `SessionStart`) for a project; `stop_cooldown_minutes: N` overrides the `Stop` hook's cooldown window (default 20, `0` = never suppress). New `plugins/checkpoint/hooks/lib/read-project-config.js` reads both, failing open to the pre-existing defaults on a missing file, missing field, or malformed value. `post-compact-checkpoint.js` previously never read stdin at all; it now does (to get `cwd` for config lookup), but still unconditionally emits its reminder if that stdin read is empty, unparseable, or times out — the fail-open direction is preserved, not weakened. Documented in `docs/HOOKS.md` and `assets/scope-config-template.md`.
+
 ## [0.1.15] - 2026-08-23
 
 ### Changed
