@@ -2,10 +2,17 @@
 // stop-checkpoint — Stop hook
 //
 // Forces (not nudges) a checkpoint pass before the session is allowed to
-// actually end. Stop hooks CAN block (unlike PreCompact), so this uses that:
-// on a normal stop it blocks once with a reason, which makes Claude take one
-// more turn; `stop_hook_active` (set by Claude Code on that forced turn) is
-// checked so the block never fires twice and can't loop.
+// actually end. Stop hooks CAN force one more turn (unlike PreCompact), so
+// this uses that: on a normal stop it returns `hookSpecificOutput.
+// additionalContext`, which makes Claude take one more turn through the same
+// loop protections as `decision: "block"` (`stop_hook_active`, the
+// continuation cap) — but per Claude Code's own hooks reference, the
+// transcript labels this "Stop hook feedback" instead of a "hook error"
+// notice, unlike `decision: "block"`. Deliberately not using
+// `decision`/`reason`: that field IS documented for Stop, but Claude Code
+// renders it as an error even when the hook is working exactly as designed,
+// which read as a bug to users. `stop_hook_active` (set by Claude Code on
+// that forced turn) is checked so this never fires twice and can't loop.
 //
 // The forced turn still carries the checkpoint skill's own triviality gate
 // in the reason text ("skip trivial completed Q&A") — automatic here means
@@ -74,10 +81,12 @@ readStdinJson((parsed, stdinFailed) => {
   }
   recordBlock();
   process.stdout.write(JSON.stringify({
-    decision: 'block',
-    reason:
-      'Unsaved state? Run `$checkpoint:save --trigger stop` now (skip trivial Q&A, ' +
-      'per the checkpoint skill\'s own gate).',
+    hookSpecificOutput: {
+      hookEventName: 'Stop',
+      additionalContext:
+        'Unsaved state? Run `$checkpoint:save --trigger stop` now (skip trivial Q&A, ' +
+        'per the checkpoint skill\'s own gate).',
+    },
   }));
   // exitCode (not exit()) so the process exits naturally once stdout has
   // actually flushed, instead of risking a truncated write under backpressure.

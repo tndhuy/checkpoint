@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.17] - 2026-08-27
+
+### Fixed
+- `stop-checkpoint.js` forced its extra turn via `decision: "block"` + `reason`, which Claude Code's transcript renders as a `<hook name> hook error` notice even though the hook was working exactly as designed — confusing, reported directly by a user seeing a real, correctly-functioning block read as a bug. Root-caused against Claude Code's own hooks reference (Stop decision control section): `hookSpecificOutput.additionalContext` forces the same extra turn through the same loop protections (`stop_hook_active`, the continuation cap) but the transcript labels it "Stop hook feedback" instead of an error. Switched to that field; no behavior change beyond the transcript label. `tests/test_hooks_runtime.py` updated to assert the new output shape.
+
 ## [0.1.16] - 2026-08-27
 
 ### Added

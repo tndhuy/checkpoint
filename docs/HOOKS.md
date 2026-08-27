@@ -40,6 +40,8 @@ Any cooldown/debounce (to avoid nagging on every `Stop`) belongs inside the wire
 
 **Resolved in 0.1.13** (was a known limitation from 0.1.9 through 0.1.12): real-world use surfaced `Stop` blocking too often — several other host plugins also register `Stop` hooks, so a session can see many `Stop` events close together, and `stop-checkpoint.js` blocked on every one not already covered by the same-turn `stop_hook_active` guard. `hooks/stop-checkpoint.js` now implements the cooldown this section originally called for, but deliberately not via checkpoint-timestamp diffing (that would need the script to know where checkpoints live, replicating scope/role resolution logic outside the skill) — instead it tracks its own last-blocked-at time in a tmp-dir marker file and skips repeat blocks within a 20-minute window. The `reason` text was also shortened; the triviality judgment ("skip trivial completed Q&A") stays, just more tersely. `PreCompact` fires once per compaction and still needs no cooldown.
 
+**Resolved in 0.1.17**: `stop-checkpoint.js` forced the extra turn via `decision: "block"` + `reason`, which Claude Code's transcript renders as a `<hook name> hook error` notice — confusing, since the hook was working exactly as designed, not failing. Per Claude Code's own hooks reference (Stop decision control section), `hookSpecificOutput.additionalContext` forces the same extra turn through the same loop protections (`stop_hook_active`, the continuation cap) but is labeled "Stop hook feedback" instead. Switched to that field; no behavior change beyond the transcript label.
+
 **Not recommended:** a native `PostToolUse` hook duplicating the commit/push match Tier 1 already covers with less code.
 
 ## Per-project settings

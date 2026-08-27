@@ -37,12 +37,25 @@ class StopCheckpointTests(unittest.TestCase):
             env["CHECKPOINT_CONFIG_FILE"] = config_file
         return run_hook("stop-checkpoint.js", stdin, env=env)
 
+    @staticmethod
+    def assert_blocked(stdout: str) -> str:
+        # Documented Stop-hook decision control (Claude Code hooks reference):
+        # hookSpecificOutput.additionalContext forces the same extra-turn
+        # continuation as decision: "block" (same stop_hook_active /
+        # continuation-cap protections), but the transcript labels it "Stop
+        # hook feedback" instead of a "hook error" notice — deliberately not
+        # using decision/reason, which IS documented but renders as an error
+        # even when the hook is working exactly as designed.
+        payload = json.loads(stdout)
+        context = payload["hookSpecificOutput"]["additionalContext"]
+        assert payload["hookSpecificOutput"]["hookEventName"] == "Stop"
+        return context
+
     def test_blocks_on_normal_stop(self):
         result = self.run_stop("{}")
         self.assertEqual(result.returncode, 0)
-        payload = json.loads(result.stdout)
-        self.assertEqual(payload["decision"], "block")
-        self.assertIn("checkpoint:save", payload["reason"])
+        context = self.assert_blocked(result.stdout)
+        self.assertIn("checkpoint:save", context)
 
     def test_does_not_block_when_stop_hook_active(self):
         result = self.run_stop(json.dumps({"stop_hook_active": True}))
@@ -61,20 +74,20 @@ class StopCheckpointTests(unittest.TestCase):
 
     def test_cooldown_suppresses_repeat_block(self):
         first = self.run_stop("{}")
-        self.assertEqual(json.loads(first.stdout)["decision"], "block")
+        self.assert_blocked(first.stdout)
         second = self.run_stop("{}")
         self.assertEqual(second.stdout, "", "a second Stop within the cooldown window must not block again")
 
     def test_cooldown_expires(self):
         Path(self.cooldown_file).write_text(json.dumps({"lastBlockedAt": 0}))  # far in the past
         result = self.run_stop("{}")
-        self.assertEqual(json.loads(result.stdout)["decision"], "block")
+        self.assert_blocked(result.stdout)
 
     def test_corrupt_cooldown_file_does_not_crash(self):
         Path(self.cooldown_file).write_text("not json")
         result = self.run_stop("{}")
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(json.loads(result.stdout)["decision"], "block")
+        self.assert_blocked(result.stdout)
 
     def test_hooks_enabled_false_suppresses_block(self):
         with tempfile.TemporaryDirectory() as d:
@@ -89,19 +102,15 @@ class StopCheckpointTests(unittest.TestCase):
             config_file = str(Path(d) / "config.md")
             Path(config_file).write_text("---\nstop_cooldown_minutes: 0\n---\n")
             first = self.run_stop("{}", config_file=config_file)
-            self.assertEqual(json.loads(first.stdout)["decision"], "block")
+            self.assert_blocked(first.stdout)
             second = self.run_stop("{}", config_file=config_file)
-            self.assertEqual(
-                json.loads(second.stdout)["decision"],
-                "block",
-                "a 0-minute cooldown must never suppress a repeat block",
-            )
+            self.assert_blocked(second.stdout)
 
     def test_missing_config_file_defaults_to_enabled_with_20min_cooldown(self):
         with tempfile.TemporaryDirectory() as d:
             config_file = str(Path(d) / "does-not-exist.md")
             result = self.run_stop("{}", config_file=config_file)
-            self.assertEqual(json.loads(result.stdout)["decision"], "block")
+            self.assert_blocked(result.stdout)
 
     def test_malformed_config_file_fails_open_to_defaults(self):
         with tempfile.TemporaryDirectory() as d:
@@ -109,14 +118,14 @@ class StopCheckpointTests(unittest.TestCase):
             Path(config_file).write_text("not frontmatter at all")
             result = self.run_stop("{}", config_file=config_file)
             self.assertEqual(result.returncode, 0)
-            self.assertEqual(json.loads(result.stdout)["decision"], "block")
+            self.assert_blocked(result.stdout)
 
     def test_invalid_cooldown_value_falls_back_to_default(self):
         with tempfile.TemporaryDirectory() as d:
             config_file = str(Path(d) / "config.md")
             Path(config_file).write_text("---\nstop_cooldown_minutes: not-a-number\n---\n")
             first = self.run_stop("{}", config_file=config_file)
-            self.assertEqual(json.loads(first.stdout)["decision"], "block")
+            self.assert_blocked(first.stdout)
             second = self.run_stop("{}", config_file=config_file)
             self.assertEqual(
                 second.stdout, "", "an invalid cooldown value must fall back to the 20-minute default, not 0"
