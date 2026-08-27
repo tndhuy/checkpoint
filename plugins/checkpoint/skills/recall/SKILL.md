@@ -13,7 +13,7 @@ Accept `--scope project|global` to narrow the search to one location when a proj
 
 Use any project, title, or path hint included with the invocation. Otherwise prefer an active checkpoint matching the current project or working directory, then the most recently updated candidate. If multiple candidates remain plausible, ask exactly one multiple-choice question in the user's language and stop before reading further.
 
-Read the chosen checkpoint in full. Before taking action, report concise answers to these questions:
+Read the chosen checkpoint in full. Before taking action, report concise answers to these questions, written in the language used by the user in the current request (not the language the checkpoint document happens to be stored in), unless the user explicitly requests another language:
 
 1. What outcome is pursued?
 2. What is true now, and how was it verified?

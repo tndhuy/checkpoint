@@ -35,6 +35,23 @@ class SkillInstructionTests(unittest.TestCase):
                 self.assertIn("explicitly requests another language", normalized)
                 self.assertIn("error messages verbatim", normalized)
 
+    def test_recall_and_list_reports_follow_the_users_language(self):
+        for name in ("recall", "list"):
+            with self.subTest(name=name):
+                content = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
+                normalized = " ".join(content.split())
+                self.assertIn(
+                    "language used by the user in the current request",
+                    normalized,
+                )
+                self.assertIn("explicitly requests another language", normalized)
+
+    def test_language_rule_addresses_mixed_language_sessions(self):
+        content = (SKILLS / "checkpoint" / "SKILL.md").read_text(encoding="utf-8")
+        normalized = " ".join(content.split())
+        self.assertIn("even when the surrounding session is", normalized)
+        self.assertIn("do not default to English", normalized)
+
     def test_all_contract_headings_are_named_in_skill(self):
         content = SKILL.read_text(encoding="utf-8")
         for heading in REQUIRED_HEADINGS:
