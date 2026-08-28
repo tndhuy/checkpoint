@@ -47,6 +47,7 @@ Codex exposes these namespaced skills:
 - `$checkpoint:list` — list saved checkpoints.
 - `$checkpoint:recall` — load and resume a checkpoint.
 - `$checkpoint:checkpoint` — invoke the portable canonical workflow directly.
+- `$checkpoint:report` — write a completion report for a finished task.
 
 Generated checkpoint documents follow the language used in the user's current
 request unless another language is explicitly requested. Technical literals
@@ -61,8 +62,8 @@ claude plugin install checkpoint@checkpoint-skill
 
 Restart Claude Code after installation.
 
-Claude Code exposes the same three skills as `/checkpoint:save`, `/checkpoint:list`,
-and `/checkpoint:recall` — no separate `commands/` directory; Claude Code merges
+Claude Code exposes the same skills as `/checkpoint:save`, `/checkpoint:list`,
+`/checkpoint:recall`, and `/checkpoint:report` — no separate `commands/` directory; Claude Code merges
 command and skill invocation, so each skill's own `argument-hint`/`allowed-tools`
 frontmatter drives the slash-command UX directly.
 

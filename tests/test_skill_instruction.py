@@ -108,7 +108,20 @@ class SkillInstructionTests(unittest.TestCase):
         normalized = " ".join(content.split())
         self.assertIn("Ghi chú thuật ngữ", normalized)
         self.assertIn("Đề xuất mở rộng", normalized)
-        self.assertIn("don", normalized)  # "don't pad" — cheap smoke check
+        self.assertIn(
+            "Omit the `ELI5`, `Ghi chú thuật ngữ`, and `Đề xuất mở rộng` headings entirely when they don't apply",
+            normalized,
+        )
+
+    def test_list_and_recall_exclude_report_files(self):
+        for name in ("list", "recall"):
+            with self.subTest(name=name):
+                content = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
+                normalized = " ".join(content.split())
+                self.assertIn(
+                    "Exclude `type: report` files and anything under a `reports/` subtree",
+                    normalized,
+                )
 
     def test_codex_namespaced_skills_are_self_contained(self):
         for name in ("save", "list", "recall", "report"):

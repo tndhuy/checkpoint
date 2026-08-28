@@ -7,7 +7,7 @@ allowed-tools: Read, Grep, Glob
 
 # Recall checkpoint
 
-Locate and load one checkpoint to resume work from. Search both standalone `type: checkpoint` files and headings containing `checkpoint` inside larger project or Daily notes.
+Locate and load one checkpoint to resume work from. Search both standalone `type: checkpoint` files and headings containing `checkpoint` inside larger project or Daily notes. Exclude `type: report` files and anything under a `reports/` subtree — those are completion reports, not resumable checkpoints, and `recall`'s resume flow does not apply to them.
 
 Accept `--scope project|global` to narrow the search to one location when a project has checkpoints recorded in both (uncommon, but possible after a scope change). See `../checkpoint/references/scope-and-role.md` ("Recording the choice") for where these locations are actually recorded — `.checkpoint/config.md` for project scope, `<global_root>/config.md` for global.
 

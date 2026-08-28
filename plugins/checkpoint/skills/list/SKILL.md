@@ -9,7 +9,7 @@ allowed-tools: Read, Grep, Glob
 
 Find and summarize existing checkpoints. Do not read full contents unless needed to disambiguate; frontmatter and the title line are enough.
 
-Search the current project's checkpoint or notes location, recent Daily notes when a notes vault is in use, and dedicated handoff notes. Match both standalone files whose frontmatter contains `type: checkpoint` and headings containing `checkpoint` inside larger notes. Do not filter by file-level `type` alone.
+Search the current project's checkpoint or notes location, recent Daily notes when a notes vault is in use, and dedicated handoff notes. Match both standalone files whose frontmatter contains `type: checkpoint` and headings containing `checkpoint` inside larger notes. Do not filter by file-level `type` alone. Exclude `type: report` files and anything under a `reports/` subtree — those are completion reports, not resumable checkpoints.
 
 Accept `--scope project|global|all` (default `all`): `project` limits the search to this project's own checkpoint location (its `.checkpoint/` or notes convention); `global` limits it to the global store recorded for this project, if one is configured; `all` searches both and reports the scope of each result. See `../checkpoint/references/scope-and-role.md` ("Recording the choice") for where these locations are actually recorded — `.checkpoint/config.md` for project scope, `<global_root>/config.md` for global.
 
