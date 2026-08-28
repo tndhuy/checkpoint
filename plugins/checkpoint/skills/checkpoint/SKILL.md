@@ -55,6 +55,8 @@ only the checkpoint document itself.
 
 When the user explicitly invokes the skill, including `$checkpoint`, `/checkpoint` or a host-namespaced form such as `$checkpoint:checkpoint` or `$checkpoint:save`, always render the full canonical template, including for chat-only output. Do not collapse it into a summary or rename, merge or omit required headings. Profile-specific fields may say `Unknown` when evidence is unavailable; keep the field so absence is explicit. Preserve exact paths, commands, branch names, failure messages and prohibition wording verbatim when supplied.
 
+A hook-triggered invocation (`--trigger stop`, `pre-compact`, `post-commit`, or `post-push` — the model acting on an automated nudge, not the user typing the command) still writes the full canonical template to the file exactly as above, but the chat response collapses to one line: `Checkpoint saved to <path>.` Do not re-render the full template in chat, and do not redo, re-verify, or re-narrate work already completed and reported to the user this session — the hook is asking for persistence, not a fresh report. Reserve full chat rendering for an invocation the user actually typed.
+
 For developer checkpoints, always include `Working directory`, `Branch`, `Changed files`, test evidence and `Resume command`; write `Unknown` for any missing fact. Keep each prohibition on one line beginning `- Do not:` so boundaries remain searchable and unambiguous.
 
 Required sections:

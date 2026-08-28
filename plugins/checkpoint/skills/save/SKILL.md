@@ -47,4 +47,6 @@ Add decisions and a resume command when useful. Label open loops as `promote`, `
 
 Use `../checkpoint/assets/checkpoint-template.md` as the exact skeleton — including its YAML frontmatter (`type: checkpoint`, `status`, `profile`, `scope`, `role`, `project`, `branch`, `owner`). `list` and `recall` locate and filter checkpoints by that frontmatter; omitting it makes a saved checkpoint invisible to both. Keep every shown heading and developer field; fill `profile` with the value resolved above.
 
+A hook-triggered invocation (`--trigger stop`, `pre-compact`, `post-commit`, or `post-push` — acting on an automated nudge, not the user typing `$checkpoint:save`) still writes the full template to the file exactly as above, but the chat response collapses to one line: `Checkpoint saved to <path>.` Do not re-render the full template in chat, and do not redo, re-verify, or re-narrate work already completed and reported to the user this session — the hook is asking for persistence, not a fresh report. Reserve full chat rendering for `--trigger manual` (the default) or no flag, i.e. an invocation the user actually typed.
+
 Before finishing, verify that a fresh agent can answer: what outcome is pursued, what is true and how it was verified, what must not change, what action comes next, and what proves completion.

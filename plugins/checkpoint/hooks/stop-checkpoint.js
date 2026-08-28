@@ -84,8 +84,9 @@ readStdinJson((parsed, stdinFailed) => {
     hookSpecificOutput: {
       hookEventName: 'Stop',
       additionalContext:
-        'Unsaved state? Run `$checkpoint:save --trigger stop` now (skip trivial Q&A, ' +
-        'per the checkpoint skill\'s own gate).',
+        'Unsaved state? Run `$checkpoint:save --trigger stop` now — persist to file only; ' +
+        'do not redo, re-verify, or re-narrate work already completed and reported to the ' +
+        'user this session (skip trivial Q&A, per the checkpoint skill\'s own gate).',
     },
   }));
   // exitCode (not exit()) so the process exits naturally once stdout has

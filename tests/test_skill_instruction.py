@@ -17,6 +17,18 @@ class SkillInstructionTests(unittest.TestCase):
         self.assertIn("always render the full canonical template", content)
         self.assertIn("Do not collapse it into a summary", content)
 
+    def test_hook_triggered_invocation_collapses_chat_output(self):
+        for name in ("checkpoint", "save"):
+            with self.subTest(name=name):
+                content = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
+                normalized = " ".join(content.split())
+                self.assertIn("A hook-triggered invocation", normalized)
+                self.assertIn("chat response collapses to one line", normalized)
+                self.assertIn(
+                    "do not redo, re-verify, or re-narrate work already completed",
+                    normalized,
+                )
+
     def test_developer_unknowns_and_boundaries_are_explicit(self):
         content = SKILL.read_text(encoding="utf-8")
         self.assertIn("always include `Working directory`, `Branch`, `Changed files`", content)

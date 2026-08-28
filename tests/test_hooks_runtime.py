@@ -57,6 +57,16 @@ class StopCheckpointTests(unittest.TestCase):
         context = self.assert_blocked(result.stdout)
         self.assertIn("checkpoint:save", context)
 
+    def test_reminder_scopes_the_forced_turn_to_persistence_only(self):
+        # Regression: a prior wording only said "run save", which left the
+        # forced turn free to redo/re-verify already-finished work and then
+        # re-narrate it in chat — producing a near-duplicate of a report the
+        # user had already been given a moment earlier.
+        result = self.run_stop("{}")
+        context = self.assert_blocked(result.stdout)
+        self.assertIn("persist to file only", context)
+        self.assertIn("do not redo, re-verify, or re-narrate", context)
+
     def test_does_not_block_when_stop_hook_active(self):
         result = self.run_stop(json.dumps({"stop_hook_active": True}))
         self.assertEqual(result.returncode, 0)
