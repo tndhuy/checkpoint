@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Checkpoint workflow for durable agent handoffs",
-    "version": "0.1.17"
+    "version": "0.1.18"
   },
   "plugins": [
     {

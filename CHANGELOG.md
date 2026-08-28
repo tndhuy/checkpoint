@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.18] - 2026-08-28
+
+### Added
+- New `report` skill (`plugins/checkpoint/skills/report/SKILL.md`) persists an immutable, evidence-backed completion report per finished task at `.checkpoint/reports/<date>-<slug>.md` — what was achieved and why (with alternatives considered), the technique/pattern applied and whether it's optimal, a file-by-file diff summary flagging what needs careful review, and optional `ELI5`/`Ghi chú thuật ngữ`/`Đề xuất mở rộng` sections omitted when they don't apply. Proactively self-suggests after a substantive completed task the same way `checkpoint` already suggests itself for unfinished state — no new hook; Claude Code has no "task complete" lifecycle event, so this is judgment-driven from the skill's own `Decide` section, mirroring `checkpoint/SKILL.md`'s existing pattern. New template asset `plugins/checkpoint/skills/checkpoint/assets/report-template.md`. `scripts/validate_distribution.py`'s `CODEX_SKILLS` now includes `report`.
+
 ## [0.1.17] - 2026-08-27
 
 ### Fixed
