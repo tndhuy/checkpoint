@@ -13,7 +13,7 @@ PLUGIN_DIR = "checkpoint"
 PLUGIN_NAME = "checkpoint"
 PLUGIN = ROOT / "plugins" / PLUGIN_DIR
 SKILL = PLUGIN / "skills" / "checkpoint"
-CODEX_SKILLS = ("checkpoint", "save", "list", "recall")
+CODEX_SKILLS = ("checkpoint", "save", "list", "recall", "report")
 SEMVER = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$")
 PRIVATE_MARKERS = ("/Users/", "\\Users\\", "trannguyendanghuy", "Workspace/personal")
 

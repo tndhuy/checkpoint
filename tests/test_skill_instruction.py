@@ -85,8 +85,33 @@ class SkillInstructionTests(unittest.TestCase):
             with self.subTest(heading=heading):
                 self.assertIn(f"- {heading}", content)
 
+    def test_report_skill_carries_slash_command_frontmatter(self):
+        content = (SKILLS / "report" / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("name: report", content)
+        self.assertIn("argument-hint:", content)
+        self.assertIn("allowed-tools:", content)
+
+    def test_report_skill_follows_the_users_language(self):
+        content = (SKILLS / "report" / "SKILL.md").read_text(encoding="utf-8")
+        normalized = " ".join(content.split())
+        self.assertIn("language used by the user in the current request", normalized)
+        self.assertIn("explicitly requests another language", normalized)
+
+    def test_report_skill_proposes_before_writing_unless_explicit(self):
+        content = (SKILLS / "report" / "SKILL.md").read_text(encoding="utf-8")
+        normalized = " ".join(content.split())
+        self.assertIn("ask before persisting", normalized)
+        self.assertIn("write it directly", normalized)
+
+    def test_report_skill_omits_inapplicable_optional_headings(self):
+        content = (SKILLS / "report" / "SKILL.md").read_text(encoding="utf-8")
+        normalized = " ".join(content.split())
+        self.assertIn("Ghi chú thuật ngữ", normalized)
+        self.assertIn("Đề xuất mở rộng", normalized)
+        self.assertIn("don", normalized)  # "don't pad" — cheap smoke check
+
     def test_codex_namespaced_skills_are_self_contained(self):
-        for name in ("save", "list", "recall"):
+        for name in ("save", "list", "recall", "report"):
             with self.subTest(name=name):
                 content = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
                 self.assertIn(f"name: {name}", content)
@@ -97,7 +122,7 @@ class SkillInstructionTests(unittest.TestCase):
         # invocation, and a skill takes precedence over any same-named commands/
         # file, so commands/ added nothing but a second place for this to drift.
         # Each skill's own frontmatter must carry what a command file used to.
-        for name in ("save", "list", "recall"):
+        for name in ("save", "list", "recall", "report"):
             with self.subTest(name=name):
                 content = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
                 self.assertIn("argument-hint:", content)
