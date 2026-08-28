@@ -52,6 +52,33 @@ class SkillInstructionTests(unittest.TestCase):
         self.assertIn("even when the surrounding session is", normalized)
         self.assertIn("do not default to English", normalized)
 
+    def test_report_template_has_required_and_conditional_sections(self):
+        template = (
+            SKILLS / "checkpoint" / "assets" / "report-template.md"
+        ).read_text(encoding="utf-8")
+        for key in (
+            "type: report",
+            "created:",
+            "profile:",
+            "scope:",
+            "role:",
+            "project:",
+            "branch:",
+            "related_checkpoint:",
+        ):
+            with self.subTest(key=key):
+                self.assertIn(key, template)
+        for heading in (
+            "## Kết quả & lý do",
+            "## Kỹ thuật đã dùng",
+            "## Thay đổi cụ thể",
+            "## ELI5",
+            "## Ghi chú thuật ngữ",
+            "## Đề xuất mở rộng",
+        ):
+            with self.subTest(heading=heading):
+                self.assertIn(heading, template)
+
     def test_all_contract_headings_are_named_in_skill(self):
         content = SKILL.read_text(encoding="utf-8")
         for heading in REQUIRED_HEADINGS:
