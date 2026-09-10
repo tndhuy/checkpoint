@@ -208,5 +208,108 @@ class PostCompactCheckpointTests(unittest.TestCase):
             self.assertEqual(result.stdout, "")
 
 
+class WaypointWriterTests(unittest.TestCase):
+    def setUp(self):
+        self._waypoints_dir = tempfile.TemporaryDirectory()
+        self.waypoints_dir = self._waypoints_dir.name
+        self._repo_dir = tempfile.TemporaryDirectory()
+        self.repo_dir = self._repo_dir.name
+        subprocess.run(["git", "init", "-q", "-b", "main", self.repo_dir], check=True)
+        subprocess.run(["git", "-C", self.repo_dir, "config", "user.email", "test@example.com"], check=True)
+        subprocess.run(["git", "-C", self.repo_dir, "config", "user.name", "Test"], check=True)
+        (Path(self.repo_dir) / "file.txt").write_text("hello")
+        subprocess.run(["git", "-C", self.repo_dir, "add", "file.txt"], check=True)
+        subprocess.run(["git", "-C", self.repo_dir, "commit", "-q", "-m", "init"], check=True)
+
+    def tearDown(self):
+        self._waypoints_dir.cleanup()
+        self._repo_dir.cleanup()
+
+    def slug(self) -> str:
+        return self.repo_dir.replace("/", "-")
+
+    def waypoint_file(self) -> Path:
+        return Path(self.waypoints_dir) / f"{self.slug()}.jsonl"
+
+    def run_waypoint(self, stdin: str, config_file: str | None = None) -> subprocess.CompletedProcess:
+        env = {"CHECKPOINT_WAYPOINTS_DIR": self.waypoints_dir}
+        if config_file is not None:
+            env["CHECKPOINT_CONFIG_FILE"] = config_file
+        return run_hook("waypoint-writer.js", stdin, env=env)
+
+    def test_writes_one_line_for_clean_repo(self):
+        result = self.run_waypoint(json.dumps({"cwd": self.repo_dir}))
+        self.assertEqual(result.returncode, 0)
+        lines = self.waypoint_file().read_text().strip().splitlines()
+        self.assertEqual(len(lines), 1)
+        entry = json.loads(lines[0])
+        self.assertEqual(entry["cwd"], self.repo_dir)
+        self.assertEqual(entry["branch"], "main")
+        self.assertIn("headSha", entry)
+        self.assertEqual(entry["statusShort"], "")
+
+    def test_dedupes_identical_state(self):
+        self.run_waypoint(json.dumps({"cwd": self.repo_dir}))
+        self.run_waypoint(json.dumps({"cwd": self.repo_dir}))
+        lines = self.waypoint_file().read_text().strip().splitlines()
+        self.assertEqual(len(lines), 1, "identical git state must not be logged twice")
+
+    def test_logs_again_after_new_commit(self):
+        self.run_waypoint(json.dumps({"cwd": self.repo_dir}))
+        (Path(self.repo_dir) / "file.txt").write_text("changed")
+        subprocess.run(["git", "-C", self.repo_dir, "commit", "-aqm", "second"], check=True)
+        self.run_waypoint(json.dumps({"cwd": self.repo_dir}))
+        lines = self.waypoint_file().read_text().strip().splitlines()
+        self.assertEqual(len(lines), 2)
+
+    def test_logs_again_after_branch_change_at_same_commit(self):
+        self.run_waypoint(json.dumps({"cwd": self.repo_dir}))
+        subprocess.run(["git", "-C", self.repo_dir, "checkout", "-qb", "other"], check=True)
+        self.run_waypoint(json.dumps({"cwd": self.repo_dir}))
+        lines = self.waypoint_file().read_text().strip().splitlines()
+        self.assertEqual(len(lines), 2)
+
+    def test_hooks_enabled_false_writes_nothing(self):
+        with tempfile.TemporaryDirectory() as d:
+            config_file = str(Path(d) / "config.md")
+            Path(config_file).write_text("---\nhooks_enabled: false\n---\n")
+            result = self.run_waypoint(json.dumps({"cwd": self.repo_dir}), config_file=config_file)
+            self.assertEqual(result.returncode, 0)
+            self.assertFalse(self.waypoint_file().exists())
+
+    def test_silent_on_non_git_directory(self):
+        with tempfile.TemporaryDirectory() as d:
+            result = self.run_waypoint(json.dumps({"cwd": d}))
+            self.assertEqual(result.returncode, 0)
+            self.assertEqual(result.stdout, "")
+
+    def test_silent_on_empty_stdin(self):
+        result = self.run_waypoint("")
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(list(Path(self.waypoints_dir).iterdir()), [])
+
+    def test_silent_on_malformed_stdin(self):
+        result = self.run_waypoint("{not valid json")
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+
+    def test_silent_when_cwd_missing(self):
+        result = self.run_waypoint(json.dumps({"stop_hook_active": True}))
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(list(Path(self.waypoints_dir).iterdir()), [])
+
+    def test_silent_when_waypoints_dir_unwritable(self):
+        parent = Path(self.waypoints_dir)
+        parent.chmod(0o500)  # read + execute, no write
+        try:
+            result = self.run_waypoint(json.dumps({"cwd": self.repo_dir}))
+            self.assertEqual(result.returncode, 0)
+            self.assertEqual(result.stdout, "")
+        finally:
+            parent.chmod(0o700)  # restore so tearDown's cleanup() can delete it
+
+
 if __name__ == "__main__":
     unittest.main()
