@@ -32,6 +32,20 @@ Never infer role from context. Only read back a previously confirmed value.
 2. No flag, but a value is recorded for this project — use it silently.
 3. No flag, nothing recorded — same non-blocking first-run exchange as scope: the checkpoint is still written now with `role: Unknown`, and the role question rides along in the same response. Persist the answer alongside `scope` in whichever config file scope resolution wrote (project-local `.checkpoint/config.md`, or the project's entry in the global config).
 
+## Language
+
+Controls what language the checkpoint's prose — and every other document this skill family produces (`save`, `recall`, `list`, `report`) — is written in. Independent of `scope`/`role`; resolved the same way, but only ever set by explicit user action, never inferred.
+
+### Resolution order (identical shape to scope and role)
+
+1. An explicit `--language` flag on the invocation — use it, and persist it as the new default for this project (or the global config, under `scope: global`).
+2. No flag, but a value is recorded for this project (or globally) — use it silently. Do not re-ask.
+3. No flag, nothing recorded — do not add a third onboarding question on top of scope/role. Fall back to the pre-existing behavior: the language used by the user in the current request. This keeps existing users' behavior unchanged until they opt in.
+
+Once persisted, `language` overrides the current-request fallback even when the surrounding session's working language differs — a checkpoint is read back by the same person later, not by whichever language one technical request happened to be phrased in. Keep technical identifiers, paths, commands, branch names, and error messages verbatim regardless of `language`.
+
+A user can set it explicitly outside the flag too — "always write my checkpoints in Vietnamese" is itself a request to persist `language: vi`; treat it the same as an explicit `--language vi` flag on the next save.
+
 ## Provenance: the `--trigger` flag
 
 `save` also accepts `--trigger manual|post-commit|post-push|stop|pre-compact`, defaulting to `manual`. It does not select scope or role — it records *why* this save is happening, for the `Decision/learning` section and for later judging which automated triggers are worth keeping. See `docs/HOOKS.md` in the repository root for how automated triggers are wired (message-only reminders that lead an agent to invoke `save` with this flag — never a hook that writes a checkpoint by itself).

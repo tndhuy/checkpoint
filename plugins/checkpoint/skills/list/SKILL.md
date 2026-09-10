@@ -17,4 +17,4 @@ Apply any project, title, or path hint included with the invocation. Report the 
 
 If nothing is found, say so and suggest `$checkpoint:save`; never invent checkpoints.
 
-Write this report in the language used by the user in the current request, unless the user explicitly requests another language — regardless of what language the underlying checkpoint files are stored in.
+Resolve this report's language per `../checkpoint/references/scope-and-role.md`'s Language section (persisted `language` wins over the current request's language once set) — regardless of what language the underlying checkpoint files are stored in.

@@ -35,28 +35,43 @@ class SkillInstructionTests(unittest.TestCase):
         self.assertIn("write `Unknown` for any missing fact", content)
         self.assertIn("one line beginning `- Do not:`", content)
 
-    def test_generated_checkpoints_follow_the_users_language(self):
+    def test_generated_checkpoints_resolve_language_via_scope_and_role(self):
         for name in ("checkpoint", "save"):
             with self.subTest(name=name):
                 content = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
                 normalized = " ".join(content.split())
-                self.assertIn(
-                    "language used by the user in the current request",
-                    normalized,
-                )
-                self.assertIn("explicitly requests another language", normalized)
+                self.assertIn("scope-and-role.md", normalized)
+                self.assertIn("Language section", normalized)
+                self.assertIn("persisted", normalized)
                 self.assertIn("error messages verbatim", normalized)
 
-    def test_recall_and_list_reports_follow_the_users_language(self):
+    def test_recall_and_list_reports_resolve_language_via_scope_and_role(self):
         for name in ("recall", "list"):
             with self.subTest(name=name):
                 content = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
                 normalized = " ".join(content.split())
-                self.assertIn(
-                    "language used by the user in the current request",
-                    normalized,
-                )
-                self.assertIn("explicitly requests another language", normalized)
+                self.assertIn("scope-and-role.md", normalized)
+                self.assertIn("Language section", normalized)
+
+    def test_scope_and_role_reference_defines_language_resolution(self):
+        content = (
+            SKILLS / "checkpoint" / "references" / "scope-and-role.md"
+        ).read_text(encoding="utf-8")
+        normalized = " ".join(content.split())
+        self.assertIn("## Language", content)
+        self.assertIn("--language", normalized)
+        self.assertIn(
+            "language used by the user in the current request",
+            normalized,
+        )
+        self.assertIn("persist", normalized)
+        self.assertIn("overrides the current-request fallback", normalized)
+
+    def test_scope_config_template_declares_language_field(self):
+        content = (
+            SKILLS / "checkpoint" / "assets" / "scope-config-template.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn('language: ""', content)
 
     def test_language_rule_addresses_mixed_language_sessions(self):
         content = (SKILLS / "checkpoint" / "SKILL.md").read_text(encoding="utf-8")
@@ -103,11 +118,25 @@ class SkillInstructionTests(unittest.TestCase):
         self.assertIn("argument-hint:", content)
         self.assertIn("allowed-tools:", content)
 
-    def test_report_skill_follows_the_users_language(self):
+    def test_report_skill_resolves_language_via_scope_and_role(self):
         content = (SKILLS / "report" / "SKILL.md").read_text(encoding="utf-8")
         normalized = " ".join(content.split())
-        self.assertIn("language used by the user in the current request", normalized)
-        self.assertIn("explicitly requests another language", normalized)
+        self.assertIn("scope-and-role.md", normalized)
+        self.assertIn("Language section", normalized)
+
+    def test_update_section_forbids_full_section_rewrites(self):
+        content = SKILL.read_text(encoding="utf-8")
+        normalized = " ".join(content.split())
+        self.assertIn("diff the new facts against what the existing file already says", normalized)
+        self.assertIn("keep its existing wording verbatim", normalized)
+        self.assertIn("5 lines", normalized)
+
+    def test_save_skill_cross_references_update_rule(self):
+        content = (SKILLS / "save" / "SKILL.md").read_text(encoding="utf-8")
+        normalized = " ".join(content.split())
+        self.assertIn("checkpoint/SKILL.md", normalized)
+        self.assertIn("Update section", normalized)
+        self.assertIn("length ceiling", normalized)
 
     def test_report_skill_proposes_before_writing_unless_explicit(self):
         content = (SKILLS / "report" / "SKILL.md").read_text(encoding="utf-8")

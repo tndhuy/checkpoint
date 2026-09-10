@@ -2,6 +2,7 @@
 type: checkpoint-config
 scope: project
 role: ""
+language: ""
 updated: YYYY-MM-DD
 ---
 
@@ -16,6 +17,7 @@ defaults shown below on any missing field, missing file, or malformed value:
 type: checkpoint-config
 scope: project
 role: ""
+language: ""                 # e.g. "vi" — once set, wins over the current request's language
 updated: YYYY-MM-DD
 hooks_enabled: true          # false silences all 3 Tier-2 hooks (Stop, PreCompact, SessionStart)
 stop_cooldown_minutes: 20    # minutes between repeat Stop-hook blocks; 0 = never suppress
@@ -30,8 +32,8 @@ global_root: "~/.checkpoint"
 updated: YYYY-MM-DD
 ---
 
-| Project path | Role |
-|---|---|
-| /absolute/path/to/repo-a | implementer |
-| /absolute/path/to/repo-b | reviewer |
+| Project path | Role | Language |
+|---|---|---|
+| /absolute/path/to/repo-a | implementer | vi |
+| /absolute/path/to/repo-b | reviewer | |
 -->

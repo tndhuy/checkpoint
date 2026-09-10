@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.19] - 2026-09-10
+
+### Fixed
+- **Language rule dropped a real checkpoint to English mid-project**: a checkpoint saved from a technical/English-language work session stayed English even though the user's own working language for that project is Vietnamese — reported directly, with a diff screenshot, by a user reading the file back later. Root cause: every language rule across `checkpoint`, `save`, `list`, `recall`, and `report` bound prose language to "the language used by the user in the current request," with no way to pin it once a project's language is known. Added a persisted `language` field to `.checkpoint/config.md` (and the global config's per-project table), resolved with the identical explicit-flag → persisted-value → first-run-fallback shape already used for `scope` and `role` (`references/scope-and-role.md`'s new Language section). Once set, `language` wins over the current request's language; unset, behavior is unchanged from 0.1.18. All 5 skills now cross-reference this one resolution instead of each restating (and independently drifting on) the old rule.
+- **Checkpoint updates rewrote entire sections for a one-line change**: the same reported checkpoint's diff showed `Next action`, `Blocker or risk`, `Decision/learning`, and `Open-loop lifecycle` fully regenerated on an update where only one fact had actually changed — the diff was nearly the whole file, defeating the "scannable in under one minute" promise `checkpoint/SKILL.md` already stated but never enforced. `checkpoint/SKILL.md`'s `Update` section now requires diffing new facts against the existing file and keeping unchanged wording verbatim, plus a concrete per-section ceiling (~5 lines / ~500 characters for `Next action`, `Blocker or risk`, `Decision/learning`, `Current state`) instead of the unenforceable "scannable" adjective alone. Note: `scripts/checkpoint_contract.py` already tracks a near-identical ceiling (`SECTION_WORD_CEILING = 80` words ≈ the new 500-character guidance) but only as a non-blocking `verbosity_warnings` entry — worth revisiting whether that should become a hard `passed` failure now that real evidence shows the soft warning alone doesn't stop the failure mode.
+- 9 new/renamed tests in `tests/test_skill_instruction.py` replace the old exact-phrase assertions with checks for the new cross-referenced resolution and the update/length rules.
+
 ## [0.1.18] - 2026-08-28
 
 ### Added

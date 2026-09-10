@@ -11,7 +11,7 @@ Capture operational state, not a conversation transcript. The user explicitly in
 
 ## Destination
 
-Prefer an existing project checkpoint or project note, today's Daily note for cross-project state, a dedicated handoff note, then chat-only output when storage is unavailable. Update an active checkpoint instead of creating a duplicate. Keep transient state out of durable knowledge stores.
+Prefer an existing project checkpoint or project note, today's Daily note for cross-project state, a dedicated handoff note, then chat-only output when storage is unavailable. Update an active checkpoint instead of creating a duplicate, per `../checkpoint/SKILL.md`'s Update section — diff against the existing file, don't regenerate a whole section for a one-line change, and respect its per-section length ceiling. Keep transient state out of durable knowledge stores.
 
 ## Scope, role, and trigger flags
 
@@ -27,10 +27,11 @@ For a developer checkpoint, always include `Working directory`, `Branch`, `Chang
 
 ## Required output
 
-Write the generated checkpoint document in the language used by the user in
-the current request, unless the user explicitly requests another language.
-Keep technical identifiers, paths, commands, branch names, and error messages
-verbatim.
+Resolve prose language per `../checkpoint/references/scope-and-role.md`'s
+Language section: a persisted `language` value wins even when the current
+request is in a different language; only fall back to the current request's
+language when nothing is persisted yet. Keep technical identifiers, paths,
+commands, branch names, and error messages verbatim.
 
 Render the full canonical checkpoint with every heading below, including for chat-only output. Do not rename, merge, omit, or collapse these sections:
 

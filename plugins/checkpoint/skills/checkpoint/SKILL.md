@@ -40,14 +40,17 @@ Capture objective, scope, current state, last verified evidence, relevant files/
 
 Use `assets/checkpoint-template.md`. Keep it scannable in under one minute.
 
-Write generated checkpoint documents in the language used by the user in the
-current request, unless the user explicitly requests another language. This
-applies to prose and narrative content even when the surrounding session is
-technical or predominantly in another language (e.g. a one-line Vietnamese
-request about an English codebase still gets a Vietnamese checkpoint) — do
-not default to English just because the work discussed is technical. Keep
-technical identifiers, paths, commands, branch names, and error messages
-verbatim regardless of language.
+Resolve the checkpoint's prose language per `references/scope-and-role.md`'s
+Language section: a persisted `language` value (once set) wins even when the
+surrounding session's working language differs — a checkpoint is read back by
+the same person later, not by whichever language one technical request
+happened to be phrased in. Only fall back to the language used in the current
+request when nothing is persisted yet. This applies to prose and narrative
+content even when the surrounding session is technical or predominantly in
+another language (e.g. a one-line Vietnamese request about an English
+codebase still gets a Vietnamese checkpoint) — do not default to English just
+because the work discussed is technical. Keep technical identifiers, paths,
+commands, branch names, and error messages verbatim regardless of language.
 
 This same rule governs every other document, report, or chat response this
 skill or its sub-skills (`save`, `recall`, `list`, `report`) produce — not
@@ -78,7 +81,9 @@ Add decisions and a resume command only when useful — except for developer che
 
 ## Update
 
-Update the active checkpoint instead of creating duplicates. Preserve verified facts and explicitly replace stale operational state. Link persistent checkpoints from their project, Daily note or MOC.
+Update the active checkpoint instead of creating duplicates. Preserve verified facts and explicitly replace stale operational state — but "replace" means the specific line whose underlying fact changed, not the section around it. Before writing, diff the new facts against what the existing file already says: if a fact carried over unchanged (an `Allowed`/`Do not` boundary, a `Done when` item still pending, a `park`ed open loop nobody acted on), keep its existing wording verbatim instead of re-narrating it in fresh prose. Regenerating a whole section on every update — even when only one bullet in it actually changed — is the failure mode this rule exists to prevent: a checkpoint whose diff is nearly the full file on every save has stopped being reliably scannable, which defeats its purpose. Link persistent checkpoints from their project, Daily note or MOC.
+
+Keep narrative sections short enough to hold in working memory on one read: `Next action`, `Blocker or risk`, `Decision/learning`, and `Current state` each stay under roughly 5 lines / ~500 characters. If a fact genuinely needs more than that to state accurately, that's a signal to split it into its own note (project note, Daily note, or a verified Wiki synthesis) and link it — not to let the checkpoint itself grow. "Scannable in under one minute" is the target; this length ceiling is what keeps that target enforceable instead of aspirational.
 
 ## Quality gate
 

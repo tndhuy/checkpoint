@@ -33,7 +33,7 @@ Use `../checkpoint/assets/report-template.md` as the exact skeleton, including i
 
 If an active checkpoint for this project exists, set `related_checkpoint` to its path relative to the report; otherwise leave it `""`. Write `Unknown` for any fact that cannot be verified (e.g. `branch` when the project has no `.git`); never leave a template default in place.
 
-Write the report in the language used by the user in the current request, unless the user explicitly requests another language — the same rule centralized in `../checkpoint/SKILL.md`. Keep technical identifiers, paths, commands, branch names, and error messages verbatim. Keep the template's heading names verbatim regardless of the report's language; only the body text follows the user's language.
+Resolve the report's language per `../checkpoint/references/scope-and-role.md`'s Language section — the same rule centralized in `../checkpoint/SKILL.md`. Keep technical identifiers, paths, commands, branch names, and error messages verbatim. Keep the template's heading names verbatim regardless of the report's language; only the body text follows the resolved language.
 
 Omit the `ELI5`, `Ghi chú thuật ngữ`, and `Đề xuất mở rộng` headings entirely when they don't apply to this task — don't pad a report with a heading that has nothing under it.
 
