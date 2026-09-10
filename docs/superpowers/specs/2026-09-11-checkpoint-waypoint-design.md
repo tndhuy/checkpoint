@@ -46,13 +46,15 @@ No file is ever written inside the project, under either `scope: project` or `sc
 New hook script, registered as a **second, independent entry** under the existing `Stop` and `PreCompact` events in `hooks.json` — alongside, not replacing, `stop-checkpoint.js`'s existing synchronous entry. This new entry is declared `"async": true`.
 
 On fire:
-1. Run local, read-only git commands: `git rev-parse HEAD`, `git branch --show-current`, `git log -1 --format=%s`, `git status --porcelain`.
-2. Compare the resulting `headSha` + `statusShort` against the last line of this project's `.jsonl` (if any). If identical, do nothing (dedupe — avoids logging the same state repeatedly across several `Stop` fires with no intervening work).
-3. Otherwise append one JSON line:
+1. Read `cwd` from the hook's stdin JSON payload via the existing `lib/read-stdin-json.js` helper — the same pattern `stop-checkpoint.js` and `post-compact-checkpoint.js` already use, and required for the same reason: the hook process's own working directory is not guaranteed to be the project root, so `process.cwd()` cannot be trusted here.
+2. Check `hooks_enabled` for this project via the existing `lib/read-project-config.js` helper (no new config field — this reuses the flag `stop-checkpoint.js` and `post-compact-checkpoint.js` already read). If `false`, exit immediately without writing anything, consistent with that flag's documented meaning ("silences all Tier-2 hooks for this project").
+3. Run local, read-only git commands, using the `cwd` from step 1: `git rev-parse HEAD`, `git branch --show-current`, `git log -1 --format=%s`, `git status --porcelain`.
+4. Compare the resulting `headSha` + `branch` + `statusShort` against the last line of this project's `.jsonl` (if any). If identical, do nothing (dedupe — avoids logging the same state repeatedly across several `Stop` fires with no intervening work, and also catches a checkout to a different branch pointing at the same commit).
+5. Otherwise append one JSON line:
    ```json
    {"timestamp": "2026-09-11T14:32:00+07:00", "cwd": "/abs/project/path", "branch": "main", "headSha": "a1b2c3d", "headMessage": "fix(checkpoint): ...", "statusShort": " M file.js\n?? new.md"}
    ```
-4. Any failure at any step (not a git repo, tmp-dir unwritable, git binary missing) is caught and swallowed — no output, no exit-code failure, no chat message. This event is purely for future `save` calls to find; it has nothing useful to say to the user in the moment.
+6. Any failure at any step (not a git repo, tmp-dir unwritable, git binary missing, stdin read failure) is caught and swallowed — no output, no exit-code failure, no chat message. This event is purely for future `save` calls to find; it has nothing useful to say to the user in the moment.
 
 This keeps `waypoint-writer.js` a pure, mechanical script — no LLM call, no synthesis, matching the Goals section directly.
 
@@ -77,16 +79,17 @@ This is a new autonomous write (`waypoint-writer.js` writes without an explicit 
 - **Where it is written:** OS tmp directory only, never inside the project tree, under either scope. This is strictly narrower than the existing cooldown-marker precedent's threat surface, which already established tmp-dir writes as acceptable for this plugin.
 - **What it cannot do:** it cannot write, modify, or delete a checkpoint file. The invariant "hooks must never write a checkpoint on their own" is unchanged — this hook writes to a different file, in a different location, that `save` treats as optional evidence, never as an alternative destination.
 - **Failure mode:** fail-open. A failed or missing waypoint write degrades `save` to exactly its current (pre-this-feature) behavior. There is no failure mode where a missing or corrupt waypoint file causes `save` to fail, since `save` treats the log as purely additive evidence and already handles "no waypoints found" as its default path.
+- **Respects the existing kill switch:** `hooks_enabled: false` in `.checkpoint/config.md` disables `waypoint-writer.js` the same as it disables the other three Tier-2 hooks, via the same shared helper — there is no separate, harder-to-discover toggle for this one.
 
 A new subsection will be added to `docs/HOOKS.md` documenting this, following the same structure already used there for the cooldown-marker mechanism.
 
 ## Testing
 
-- Unit tests for `waypoint-writer.js`, mirroring `tests/test_hooks_runtime.py`'s existing patterns: writes a correctly-keyed `.jsonl` line for a clean git repo; dedupes correctly when fired twice with no intervening commit or working-tree change; degrades silently (no thrown error, no output) when run outside a git repository or against a read-only tmp path.
+- Unit tests for `waypoint-writer.js`, mirroring `tests/test_hooks_runtime.py`'s existing patterns: writes a correctly-keyed `.jsonl` line for a clean git repo, using `cwd` supplied via stdin JSON (not `process.cwd()`); dedupes correctly when fired twice with no intervening commit or working-tree change, and also when only the branch changes at the same commit; writes nothing and exits cleanly when `hooks_enabled: false` is set in `.checkpoint/config.md`; degrades silently (no thrown error, no output) when run outside a git repository, against a read-only tmp path, or with unparseable stdin.
 - Unit test confirming the new `Stop`/`PreCompact` hook entries are registered as `"async": true"` and are additive (the existing synchronous `stop-checkpoint.js` entry is still present and unchanged) in `hooks.json`.
 - Static content tests (same style as `tests/test_skill_instruction.py`) asserting `save/SKILL.md` documents: the waypoint read step, the facts-only boundary (never used for narrative sections), and the append-only/marker-only consumption model (no truncation language).
 - Fresh-agent forward-test (mandatory for `SKILL.md` instruction changes per this repo's 2026-08-07 precedent): in a scratch project, trigger `Stop` twice with a commit in between, confirm two distinct waypoint lines are written; run `$checkpoint:save` and confirm the resulting checkpoint's mechanical fields match the waypoint evidence; run `save` again with no new waypoints and confirm it falls back to direct git inspection without erroring.
 
 ## Rollout
 
-Version bump across all 4 tracked manifests and a `CHANGELOG.md` entry, matching this repo's established convention. Implementation proceeds via `writing-plans` once this document is approved — this is a single cohesive feature with sequential dependencies (hook script, then `hooks.json` registration, then `save` changes, then `docs/HOOKS.md` threat-review section, then tests), not independent parallelizable sub-projects.
+Version bump across all 4 tracked manifests and a `CHANGELOG.md` entry, matching this repo's established convention. `docs/HOOKS.md`'s "Per-project settings" section currently states `hooks_enabled: false` "silences all three Tier-2 hooks (`Stop`, `PreCompact`, `SessionStart`)" — this becomes stale and must be updated to reflect four hooks once `waypoint-writer.js` ships. Implementation proceeds via `writing-plans` once this document is approved — this is a single cohesive feature with sequential dependencies (hook script, then `hooks.json` registration, then `save` changes, then `docs/HOOKS.md` threat-review section and the `hooks_enabled` count fix, then tests), not independent parallelizable sub-projects.
