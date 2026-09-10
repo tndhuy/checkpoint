@@ -311,5 +311,26 @@ class WaypointWriterTests(unittest.TestCase):
             parent.chmod(0o700)  # restore so tearDown's cleanup() can delete it
 
 
+class HooksRegistrationTests(unittest.TestCase):
+    def test_waypoint_writer_registered_additively_as_async(self):
+        hooks_json = json.loads((HOOKS / "hooks.json").read_text())
+        expectations = {"Stop": "stop-checkpoint.js", "PreCompact": "pre-compact-reminder.js"}
+        for event, existing_script in expectations.items():
+            groups = hooks_json["hooks"][event]
+            commands = [h["command"] for group in groups for h in group["hooks"]]
+            self.assertTrue(
+                any("waypoint-writer.js" in c for c in commands), f"{event} is missing waypoint-writer.js"
+            )
+            self.assertTrue(
+                any(existing_script in c for c in commands), f"{event} lost its existing hook {existing_script}"
+            )
+            for group in groups:
+                for h in group["hooks"]:
+                    if "waypoint-writer.js" in h["command"]:
+                        self.assertIs(h.get("async"), True, "waypoint-writer.js must be registered async")
+                    else:
+                        self.assertNotIn("async", h, f"{existing_script} must stay synchronous")
+
+
 if __name__ == "__main__":
     unittest.main()

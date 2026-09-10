@@ -1,5 +1,5 @@
 {
-  "description": "Checkpoint auto-triggers (Tier 2, see docs/HOOKS.md). Message-only reminders around Stop and compaction that lead to an explicit $checkpoint:save invocation — never write a checkpoint on their own.",
+  "description": "Checkpoint auto-triggers (Tier 2, see docs/HOOKS.md). Message-only reminders around Stop and compaction that lead to an explicit $checkpoint:save invocation, plus a mechanical async waypoint-capture hook (git-state facts only) — neither ever writes a checkpoint file on their own.",
   "hooks": {
     "PreCompact": [
       {
@@ -9,6 +9,17 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact-reminder.js\"",
             "timeout": 3
+          }
+        ]
+      },
+      {
+        "matcher": "manual|auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/waypoint-writer.js\"",
+            "timeout": 15,
+            "async": true
           }
         ]
       }
@@ -32,6 +43,16 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-checkpoint.js\"",
             "timeout": 3
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/waypoint-writer.js\"",
+            "timeout": 15,
+            "async": true
           }
         ]
       }
