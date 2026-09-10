@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.21] - 2026-09-11
+
+### Added
+- New mechanical, no-LLM "waypoint" logging tier: `hooks/waypoint-writer.js` registered as a second, independent, `"async": true` entry under both `Stop` and `PreCompact` — alongside, not replacing, the existing synchronous `stop-checkpoint.js`/`pre-compact-reminder.js`. On fire it appends `{timestamp, cwd, branch, headSha, headMessage, statusShort}` (deduped against the log's last line) to `~/.claude/checkpoint-skill/waypoints/<slug>.jsonl`, where `<slug>` is the project's absolute path with every `/` replaced by `-` — the same convention Claude Code itself uses for `~/.claude/projects/<slug>/`. Stored under the user's home directory rather than the OS tmp directory, and keyed by a plain slug rather than a hash, specifically so `save` (`allowed-tools: Read, Write, Edit` — no `Bash`, no `Glob`) can compute the exact path itself with no new tool grant. `save/SKILL.md` gained a "Waypoint evidence" step: it reads unconsumed lines (tracked via a sibling `.consumed` line-count marker, never a byte offset) and uses them only for the mechanically-derivable parts of a checkpoint (`Working directory`, `Branch`, `Changed files`), never for `Outcome`/`Decision/learning`/anything requiring judgment. Respects `hooks_enabled: false` via the existing `lib/read-project-config.js` check; fails open on any error (no git repo, unwritable target, malformed stdin). No benefit to an in-session manual `save` — the payoff is specifically post-compact, fresh-session, and `recall`, where conversational context is already gone. Full design: `docs/superpowers/specs/2026-09-11-checkpoint-waypoint-design.md`.
+
+### Changed
+- `docs/HOOKS.md`'s "Per-project settings" section updated: `hooks_enabled: false` now correctly documents silencing four Tier-2 hooks, not three.
+
+### Verified
+- New `WaypointWriterTests` and `HooksRegistrationTests` (`tests/test_hooks_runtime.py`), new waypoint-evidence tests (`tests/test_skill_instruction.py`) — full suite passes.
+- `python3 scripts/verify.py` and `claude plugin validate --strict .` / `--strict plugins/checkpoint` pass.
+- Live forward-test (partial — implementing agent ran as a subagent, not an interactive session, per this release's own design doc caveat): in a scratch git repo, invoked `waypoint-writer.js` directly with crafted `Stop`-shaped stdin across two commits and confirmed `~/.claude/checkpoint-skill/waypoints/<slug>.jsonl` grew from one to two lines with distinct `headSha` values — the mechanical capture path is real-world verified, not just unit-tested. The `$checkpoint:save` waypoint-evidence read and `.consumed` marker update could **not** be exercised this way — that requires a live interactive session with the scratch repo as the actual working directory, which a subagent invoking its own skills cannot fake — and remains unverified pending a real session run.
+
 ## [0.1.20] - 2026-09-10
 
 ### Changed
