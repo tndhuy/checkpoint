@@ -131,6 +131,19 @@ class SkillInstructionTests(unittest.TestCase):
         self.assertIn("keep its existing wording verbatim", normalized)
         self.assertIn("5 lines", normalized)
 
+    def test_save_skill_documents_waypoint_evidence_step(self):
+        content = (SKILLS / "save" / "SKILL.md").read_text(encoding="utf-8")
+        normalized = " ".join(content.split())
+        self.assertIn("checkpoint-skill/waypoints", normalized)
+        self.assertIn(".consumed", normalized)
+        self.assertIn("never for", normalized)
+        self.assertIn("Never truncate or delete", content)
+
+    def test_save_skill_waypoint_slug_matches_hook_convention(self):
+        content = (SKILLS / "save" / "SKILL.md").read_text(encoding="utf-8")
+        normalized = " ".join(content.split())
+        self.assertIn("replace every `/` with `-`", normalized)
+
     def test_save_skill_cross_references_update_rule(self):
         content = (SKILLS / "save" / "SKILL.md").read_text(encoding="utf-8")
         normalized = " ".join(content.split())

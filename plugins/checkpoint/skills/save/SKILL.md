@@ -17,6 +17,14 @@ Prefer an existing project checkpoint or project note, today's Daily note for cr
 
 Accept `--scope project|global` and `--role <text>` on this command. Resolve both per `../checkpoint/references/scope-and-role.md`: an explicit flag overrides and re-persists the value for this project; otherwise reuse a previously recorded value silently; otherwise ask once — **this resolution never blocks or delays writing the checkpoint** (read that file for the full resolution order and first-run behavior). Accept `--trigger manual|post-commit|post-push|stop|pre-compact` (default `manual`) to record why this save is happening, without affecting scope or role.
 
+## Waypoint evidence
+
+Before gathering evidence, check for mechanically-captured waypoints: take this project's absolute path, replace every `/` with `-` to get `<slug>`, and `Read` `~/.claude/checkpoint-skill/waypoints/<slug>.jsonl`. If it doesn't exist, skip this step entirely and proceed exactly as before this feature existed.
+
+If it exists, also `Read` the sibling `~/.claude/checkpoint-skill/waypoints/<slug>.consumed` (treat a missing or unparseable value as `0`) and skip that many lines from the top of the `.jsonl`. Use only the remaining lines, and only for facts this skill already treats as mechanical — `Working directory`, `Branch`, `Changed files` — never for `Outcome`, `Decision/learning`, or any section requiring judgment; conversational context always wins over a stale waypoint line for those.
+
+After the checkpoint file is written, `Write` the `.consumed` marker with the `.jsonl`'s total line count at the time it was read. Never truncate or delete the `.jsonl` itself — it stays append-only; only the marker moves.
+
 ## Profile and evidence
 
 Use `developer` when repository, branch, source, test, build, migration, or runtime evidence exists; `operations` for services and machine state; `research` for claims and sources; otherwise `generic`. When evidence for more than one profile is present, see `../checkpoint/references/profiles.md` for the precedence rule and a worked example — do not guess or blend fields from two profiles.
