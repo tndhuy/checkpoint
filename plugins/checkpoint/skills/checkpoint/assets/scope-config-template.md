@@ -19,7 +19,7 @@ scope: project
 role: ""
 language: ""                 # e.g. "vi" — once set, wins over the current request's language
 updated: YYYY-MM-DD
-hooks_enabled: true          # false silences all 3 Tier-2 hooks (Stop, PreCompact, SessionStart)
+hooks_enabled: true          # false silences all 4 Tier-2 hooks: stop-checkpoint.js (Stop), pre-compact-reminder.js (PreCompact), post-compact-checkpoint.js (SessionStart), waypoint-writer.js (Stop/PreCompact)
 stop_cooldown_minutes: 20    # minutes between repeat Stop-hook blocks; 0 = never suppress
 ---
 

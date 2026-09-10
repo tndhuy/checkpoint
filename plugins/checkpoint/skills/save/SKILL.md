@@ -19,9 +19,9 @@ Accept `--scope project|global` and `--role <text>` on this command. Resolve bot
 
 ## Waypoint evidence
 
-Before gathering evidence, check for mechanically-captured waypoints: take this project's absolute path, replace every `/` with `-` to get `<slug>`, and `Read` `~/.claude/checkpoint-skill/waypoints/<slug>.jsonl`. If it doesn't exist, skip this step entirely and proceed exactly as before this feature existed.
+Before gathering evidence, check for mechanically-captured waypoints: take this project's absolute path, replace every `/` with `-` to get `<slug>` (e.g. `/home/alice/dev/myapp` → `-home-alice-dev-myapp`), and `Read` `~/.claude/checkpoint-skill/waypoints/<slug>.jsonl`. If it doesn't exist, skip this step entirely and proceed exactly as before this feature existed.
 
-If it exists, also `Read` the sibling `~/.claude/checkpoint-skill/waypoints/<slug>.consumed` (treat a missing or unparseable value as `0`) and skip that many lines from the top of the `.jsonl`. Use only the remaining lines, and only for facts this skill already treats as mechanical — `Working directory`, `Branch`, `Changed files` — never for `Outcome`, `Decision/learning`, or any section requiring judgment; conversational context always wins over a stale waypoint line for those.
+If it exists, also `Read` the sibling `~/.claude/checkpoint-skill/waypoints/<slug>.consumed` (treat a missing or unparseable value as `0`) and skip that many lines from the top of the `.jsonl`. If the marker's value is greater than the `.jsonl`'s current total line count, treat it as `0` too — this can only happen if the log was deleted or reset while the marker survived, and re-reading everything is the safe failure mode. Use only the remaining lines, and only for facts this skill already treats as mechanical — `Working directory`, `Branch`, `Changed files` — never for `Outcome`, `Decision/learning`, or any section requiring judgment; conversational context always wins over a stale waypoint line for those.
 
 After the checkpoint file is written, `Write` the `.consumed` marker with the `.jsonl`'s total line count at the time it was read. Never truncate or delete the `.jsonl` itself — it stays append-only; only the marker moves.
 
