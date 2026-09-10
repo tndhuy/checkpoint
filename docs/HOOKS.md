@@ -44,11 +44,25 @@ Any cooldown/debounce (to avoid nagging on every `Stop`) belongs inside the wire
 
 **Not recommended:** a native `PostToolUse` hook duplicating the commit/push match Tier 1 already covers with less code.
 
+## Waypoint capture (mechanical, async, additive)
+
+As of 0.1.21, a third Tier-2 script, `waypoint-writer.js`, is registered as a *second, independent* entry under both `Stop` and `PreCompact` — alongside, not replacing, `stop-checkpoint.js` and `pre-compact-reminder.js`. Unlike those two, it never surfaces a message: it silently appends `{timestamp, cwd, branch, headSha, headMessage, statusShort}` — read straight from local `git` output, no LLM, no judgment — to `~/.claude/checkpoint-skill/waypoints/<slug>.jsonl` (`<slug>` = the project's absolute path with every `/` replaced by `-`). `save` later reads this file as optional evidence for the mechanically-derivable parts of a checkpoint; see `skills/save/SKILL.md`'s "Waypoint evidence" section and `docs/superpowers/specs/2026-09-11-checkpoint-waypoint-design.md` for the full design.
+
+**Threat review** (per this file's own opening bar — "documented need and threat review" for any autonomous write):
+
+- **What is written:** exactly the six mechanical fields above, sourced from local `git` command output only. No user input, no LLM output, and no conversational content ever reaches this file.
+- **Where it is written:** `~/.claude/checkpoint-skill/waypoints/` only — never inside the project tree, under either `scope`. The hook never resolves `scope`/`role` at all, sidestepping the `scope: global` "write nothing inside the project" invariant entirely rather than special-casing it.
+- **What it cannot do:** write, modify, or delete a checkpoint file. It writes to a different file in a different location that `save` treats as optional evidence, never as an alternative destination.
+- **Failure mode:** fail-open. A failed or missing waypoint write degrades `save` to exactly its pre-0.1.21 behavior — `save` already handles "no waypoints found" as its default path.
+- **Kill switch:** `hooks_enabled: false` disables it exactly like the other three Tier-2 hooks (same shared `lib/read-project-config.js` check) — no separate, harder-to-discover toggle.
+
+Deduping compares `headSha` + `branch` + `statusShort` against the log's last line, so repeated `Stop` fires with no intervening change never grow the file — this also catches a checkout to a different branch pointing at the same commit. The file is strictly append-only; `save` tracks its own read progress in a sibling `.consumed` marker (a plain line count) rather than mutating the log.
+
 ## Per-project settings
 
 `.checkpoint/config.md` (see `assets/scope-config-template.md` in the `checkpoint` skill) accepts two optional fields, hand-added — `save` never writes them itself:
 
-- `hooks_enabled: true|false` — `false` silences all three Tier-2 hooks (`Stop`, `PreCompact`, `SessionStart`) for this project. Default `true`.
+- `hooks_enabled: true|false` — `false` silences all Tier-2 hooks for this project: `stop-checkpoint.js` (`Stop`), `pre-compact-reminder.js` (`PreCompact`), `post-compact-checkpoint.js` (`SessionStart`), and `waypoint-writer.js` (`Stop`/`PreCompact`). Default `true`.
 - `stop_cooldown_minutes: N` — overrides the `Stop` hook's cooldown window (see above). `0` means never suppress a repeat block. Default `20`.
 
 Both read via `plugins/checkpoint/hooks/lib/read-project-config.js`, which fails open to the defaults above on a missing file, missing field, or malformed value — a broken config can never make a hook behave worse than it did before this file existed. `post-compact-checkpoint.js` needs `cwd` (only available via stdin) to locate the config, so it now waits on a stdin read before emitting; an empty/unparseable/timed-out stdin still emits its reminder unconditionally, same as before this feature existed.
