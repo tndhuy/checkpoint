@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.20] - 2026-09-10
+
+### Changed
+- `checkpoint_contract.py`'s `verbosity_check` (`SECTION_WORD_CEILING = 80` words, `TOTAL_WORD_CEILING = 400` words) now fails `validate()`'s `passed` instead of only appending a non-blocking warning — direct follow-up to 0.1.19, which fixed the SKILL.md instruction but left the only automated check for it (`scripts/evaluate_checkpoint.py`) unable to actually catch a violation. Checked all `benchmarks/results/*.md` fixtures against the new gate first: several pre-existing dated result files (`operations-checkpoint.md`, `research-checkpoint.md`, and the `report` skill's own longer-form `report.md` outputs, which use a different template with no `REQUIRED_HEADINGS` match anyway) already exceed it, but none are wired into any test that asserts `passed` on them — nothing in the suite regressed. `tests/test_checkpoint_contract.py`: `test_long_section_produces_soft_warning_without_failing` renamed to `test_long_section_fails` and now asserts `passed` is `False`; added `test_long_total_body_fails` for the total-ceiling path, which had no dedicated failing-case test before.
+
 ## [0.1.19] - 2026-09-10
 
 ### Fixed

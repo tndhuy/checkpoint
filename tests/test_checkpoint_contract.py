@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from checkpoint_contract import REQUIRED_HEADINGS, SECTION_WORD_CEILING, validate
+from checkpoint_contract import REQUIRED_HEADINGS, SECTION_WORD_CEILING, TOTAL_WORD_CEILING, validate
 
 
 def checkpoint(extra: str = "") -> str:
@@ -56,12 +56,18 @@ class ContractTests(unittest.TestCase):
     def test_short_checkpoint_has_no_verbosity_warnings(self):
         self.assertEqual(validate(checkpoint()).verbosity_warnings, ())
 
-    def test_long_section_produces_soft_warning_without_failing(self):
+    def test_long_section_fails(self):
         rambling = " ".join(["word"] * (SECTION_WORD_CEILING + 1))
         body = checkpoint().replace("## Outcome\ncontent", f"## Outcome\n{rambling}")
         result = validate(body)
-        self.assertTrue(result.passed)
+        self.assertFalse(result.passed)
         self.assertTrue(any("Outcome" in warning for warning in result.verbosity_warnings))
+
+    def test_long_total_body_fails(self):
+        rambling = " ".join(["word"] * (TOTAL_WORD_CEILING + 1))
+        result = validate(checkpoint(rambling))
+        self.assertFalse(result.passed)
+        self.assertTrue(any("total body" in warning for warning in result.verbosity_warnings))
 
 
 if __name__ == "__main__":

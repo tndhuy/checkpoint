@@ -83,7 +83,7 @@ def verbosity_check(
     total_ceiling: int = TOTAL_WORD_CEILING,
     section_ceiling: int = SECTION_WORD_CEILING,
 ) -> tuple[str, ...]:
-    """Soft, non-blocking word-count warnings. Never affects `passed`."""
+    """Word-count warnings. Any warning here fails `passed` (see `validate`)."""
     warnings: list[str] = []
     total = word_count(markdown)
     if total > total_ceiling:
@@ -126,14 +126,15 @@ def validate(markdown: str, profile: str = "generic", expected_terms: tuple[str,
     missing_expected = tuple(term for term in expected_terms if not concept_present(markdown, (term,)))
     maximum = len(REQUIRED_HEADINGS) + len(PROFILE_CONCEPTS[profile]) + len(expected_terms)
     score = maximum - len(missing_headings) - len(missing_profile) - len(missing_expected)
+    warnings = verbosity_check(markdown)
     return ValidationResult(
-        not any((missing_headings, missing_profile, missing_expected)),
+        not any((missing_headings, missing_profile, missing_expected, warnings)),
         score,
         maximum,
         missing_headings,
         missing_profile,
         missing_expected,
-        verbosity_check(markdown),
+        warnings,
     )
 
 
